@@ -37,6 +37,10 @@ Then, they just call something like `genetic_algorithm_framework.go()`. The fram
 runs the "step" function for each frame and then calculates the fitness at the end, performs reproduction,
 and then starts a new generation.
 
+---
+
+Also, try to make it as compliant as possible with MVC.
+
 ## Limitations
 
 This assumes reproduction happens at the same time for every organism. This is something that doesn't 
@@ -54,3 +58,37 @@ every genetic algorithm.
 
 Someone should be able to import this framework, create a set of genes, write the step function, and 
 write the fitness function and then just let it run.
+
+## Development Notes
+
+Make sure we focus on MVC design.
+
+Consider what changes between genetic algorithms (or use cases of this framework) and what doesn't 
+change. Anything that changes should be a parameter to a constructor of the framework's `init` 
+function or whatever I call it.
+
+### Pause and Play functions
+
+So ideally, there's just a single game loop that runs forever and either takes action or does not
+based on the boolean value of some variable `isRunning`. However, how would I implement that? 
+Would I have asynchronous functions running to modify some `state` object of the system while the
+game loop is running? Maybe asynchronous functions are the way to go, but I'm not even sure that 
+works. How are values handled in JavaScript? Can I even do something like that.
+
+What if the caller just has a function that looks like the following?
+```
+function frame() {
+  ...
+  ecosystem.step()
+  ...
+  requestAnimationFrame(frame)
+}
+```
+
+This would put the burden on the caller to run it in an infinite loop. I think this might be the 
+best design I can think of right now. This makes all of the functions inside the ecosystem class 
+self-contained. I like the idea of being able to kind of just throw around the `step()` function
+wherever you feel like it and for it to not really cause any issues because it's all perfectly
+self-contained and safe. And maybe it even operates on a semaphore, so that asynchronous calls 
+are completely safe as well.
+

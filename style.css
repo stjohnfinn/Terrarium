@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,100..900;1,100..900&display=swap');
+
+*, *::after, *::before {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  min-height: 100vh;
+  min-width: 100vw;
+}
+
+body {
+  font-family: "Archivo";
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
