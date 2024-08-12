@@ -54,6 +54,20 @@ organisms interact with each other and the environment. This is the core of how 
 evolve. Obviously, this framework does not implement this function already, because it is unique to 
 every genetic algorithm.
 
+## Fitness function
+
+The user must define this function as we cannot reasonably predict what the goal of the organisms
+should be. I don't know how to require them to define this with certain parameters or return type.
+Need to figure that out. This function should return a number that represents the fitness of a 
+single organism.
+
+Higher fitness = more fit parent.
+
+## Crossover functions
+
+These functions are **IN-PLACE**. They directly modify the object that is passed in and then return
+nothing.
+
 ## Goal
 
 Someone should be able to import this framework, create a set of genes, write the step function, and 
@@ -79,7 +93,7 @@ What if the caller just has a function that looks like the following?
 ```
 function frame() {
   ...
-  ecosystem.step()
+  ecosystem.stepFunction()
   ...
   requestAnimationFrame(frame)
 }
@@ -91,4 +105,3 @@ self-contained. I like the idea of being able to kind of just throw around the `
 wherever you feel like it and for it to not really cause any issues because it's all perfectly
 self-contained and safe. And maybe it even operates on a semaphore, so that asynchronous calls 
 are completely safe as well.
-
