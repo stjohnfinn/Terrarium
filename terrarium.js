@@ -1,13 +1,21 @@
+// this class represents a single member of the population
+class Organism {
+  constructor(genes) {
+    this.genes = genes
+  }
+}
+
 // this is the main class that must be invoked each time a new program is
 // created
 class Ecosystem {
   // generateOrganism must return an organism
   // maybe they have to comply to some interface
-  constructor(stepFunction, populationSize = 50, generateOrganism, fitnessFunction) {
+  constructor(stepFunction, populationSize = 50, generateOrganism, fitnessFunction, mutationChance) {
     // should be called by the caller in a `requestAnimationFrame`
     // infinite loop
     this.step = stepFunction
     this.calculateFitness = fitnessFunction
+    this.mutationChance = mutationChance
     this.state = {
       isRunning: false,
       populationSize: populationSize,
@@ -46,6 +54,7 @@ class Ecosystem {
 const crossover = {
 
   // takes a single ecosystem object
+  // mutation: none
   basic: function(ecosystem) {
     ecosystem.previousPopulation = ecosystem.population
     ecosystem.population = []
