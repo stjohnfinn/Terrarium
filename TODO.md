@@ -7,3 +7,5 @@ functions
   actually returns an organism
 - Implement more crossover algorithms
 - Implement mutation in crossover algorithms
+- Convert to TypeScript to enforce types
+- enforce the assumptions we are already making with assertions and stuff

@@ -7,22 +7,20 @@
 }
 
 html {
-  min-height: 100vh;
-  min-width: 100vw;
-}
-
-body {
-  font-family: "Archivo";
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-h1 {
-  padding: 1rem 3rem;
-  border: solid black 1px;
-  border-radius: 1rem;
-  margin: 1rem;
-  font-weight: lighter;
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: min-content;
+  background-color: pink;
+}
+
+canvas {
+  border: 2px dashed black;
+  margin: 10px;
 }

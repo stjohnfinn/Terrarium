@@ -14,6 +14,8 @@ class Ecosystem {
     // should be called by the caller in a `requestAnimationFrame`
     // infinite loop
     this.step = stepFunction
+
+    // assumes this is implemented as higher fitness = better
     this.calculateFitness = fitnessFunction
     this.mutationChance = mutationChance
     this.state = {
@@ -34,12 +36,12 @@ class Ecosystem {
 
   // This function starts the animation loop?
   play() {
-    this.state.isRunning = true;
+    this.state.isRunning = true
   }
 
   // This function stops the animation loop?
   pause() {
-    this.state.isRunning = false;
+    this.state.isRunning = false
   }
 
   // This function resets the entire population back to its original state
@@ -55,6 +57,7 @@ const crossover = {
 
   // takes a single ecosystem object
   // mutation: none
+  // assumes the genes are a dictionary/hashmap, NOT an array
   basic: function(ecosystem) {
     ecosystem.previousPopulation = ecosystem.population
     ecosystem.population = []
@@ -78,10 +81,10 @@ const crossover = {
     // for that slot.
     for (let i = 0; i < ecosystem.populationSize; i++) {
       // assign it the value of one of the parents
-      ecosystem.population[i] = parentA
+      let offspring = new Organism(ecosystem.population[i].genes)
 
       // for each gene of the organism
-      Object.keys(ecosystem.population[i]).forEach(key => {
+      Object.keys(offspring.genes).forEach(key => {
         // generate random number
         let randomNumber = Math.random()
 
@@ -90,7 +93,7 @@ const crossover = {
         // at this point, child is a direct copy of parentA,
         // so we only need to account for parentB probability
         if (randomNumber > 0.5) {
-          ecosystem.population[i][key] = parentB[key]
+          offspring.genes[key] = parentB[key]
         }
       })
     }
