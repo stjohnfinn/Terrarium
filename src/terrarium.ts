@@ -1,50 +1,52 @@
-// crossover function(s), all should work regardless of the data type
-// of each gene
-const crossover = {
+type stepFunctionType = (ecosystem: Ecosystem) => void;
+type calculateFitnessType = (organism: Organism) => number;
 
-  // takes a single ecosystem object
-  // mutation: none
-  // assumes the genes are a dictionary/hashmap, NOT an array
-  basic: function(ecosystem) {
-    ecosystem.state.previousPopulation = ecosystem.state.population
-    ecosystem.state.population = []
+class Organism {
+  genes: {};
 
-    // calculate the two most fit parents
-    // uses the .sort function with a custom criteria (the fitness function)
-    // sorts descending
-    ecosystem.state.previousPopulation = ecosystem.state.population.sort((a, b) => {
-      const keyA = ecosystem.calculateFitness(a)
-      const keyB = ecosystem.calculateFitness(b)
+  constructor(genes: {}) {
+    this.genes = genes
+  }  
+}  
 
-      if (keyA < keyB) return -1
-      if (keyA > keyB) return 1
-      return 0
-    })
+class Ecosystem {
+  population: Organism[];
+  populationSize: number;
+  calculateFitness: calculateFitnessType;
 
-    // select the top two parents
-    const [parentA, parentB] = ecosystem.state.previousPopulation
+  constructor(population: Organism[], calculateFitness: calculateFitnessType) {
+    this.populationSize = population.length;
+    this.population = population;
+    this.calculateFitness = calculateFitness;
+  }  
+}  
 
-    // create new childern using either parentA's or parentB's gene
-    // for that slot.
-    for (let i = 0; i < ecosystem.state.populationSize; i++) {
-      // assign it the value of one of the parents
-      let offspring = parentA
+class GeneticAlgorithm {
+  ecosystem: Ecosystem;
+  isRunning: boolean;
+  step: FrameRequestCallback;
 
-      // for each gene of the organism
-      Object.keys(offspring.genes).forEach(key => {
-        // generate random number
-        let randomNumber = Math.random()
+  // TODO: make this constructor handle everything beneath it and accept 
+  // parameters for every class that it contains
+  constructor(ecosystem: Ecosystem, stepFunction: stepFunctionType) {
+    this.ecosystem = ecosystem;
+    this.isRunning = false;
+    this.step = () => {
+      if (this.isRunning) {
+        stepFunction(this.ecosystem);
+        requestAnimationFrame(this.step);
+      } else {
+        console.log("Genetic algorithm is paused. Doing nothing for now...");
+      }
+    };
+  }
 
-        // assign new gene randomly
-        // basically 50% chance for each parent
-        // at this point, child is a direct copy of parentA,
-        // so we only need to account for parentB probability
-        if (randomNumber > 0.5) {
-          offspring.genes[key] = parentB[key]
-        }
-      })
+  play() {
+    this.isRunning = true;
+    requestAnimationFrame(this.step);
+  }
 
-      ecosystem.state.population[i] = offspring
-    }
+  pause() {
+    this.isRunning = false;
   }
 }
