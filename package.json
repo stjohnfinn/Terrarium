@@ -1,0 +1,11 @@
+{
+  "name": "terrarium",
+  "version": "1.0.0",
+  "description": "A helper library for simplifying the development of genetic algorithms",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
