@@ -1,11 +1,20 @@
 {
   "name": "terrarium",
   "version": "1.0.0",
-  "description": "A helper library for simplifying the development of genetic algorithms",
-  "main": "main.js",
+  "description": "Simplifies the creation of genetic algorithms.",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
-  "author": "",
-  "license": "ISC"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stjohnfinn/Terrarium.git"
+  },
+  "author": "Finn St John",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stjohnfinn/Terrarium/issues"
+  },
+  "homepage": "https://github.com/stjohnfinn/Terrarium#readme"
 }

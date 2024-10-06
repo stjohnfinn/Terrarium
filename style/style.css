@@ -7,20 +7,21 @@
 }
 
 html {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 100vh;
 }
 
 body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: min-content;
-  background-color: pink;
+  justify-content: center;
+  min-height: 100vh;
+  background: #faebd7;
+  font-family: Archivo;
 }
 
-canvas {
-  border: 2px dashed black;
-  margin: 10px;
+div {
+  height: 100px;
+  width: 100px;
+  border: 1px solid #205090
 }
