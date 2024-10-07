@@ -17,16 +17,13 @@ body {
   justify-content: center;
   min-height: 100vh;
   background: #052060;
-  font-family: Archivo;
+  font-family: monospace;
+  color: #faebd7;
 }
 
-div {
-  height: 400px;
-  width: 500px;
+div > div {
+  padding: 1rem;
+  gap: 0.25rem;
   border: 1px solid #faebd7;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  margin: 1rem;
 }

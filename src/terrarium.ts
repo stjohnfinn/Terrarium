@@ -3,9 +3,11 @@ type calculateFitnessType = (organism: Organism) => number;
 
 class Organism {
   genes: {};
+  mutationChance: number;
 
-  constructor(genes: {}) {
-    this.genes = genes
+  constructor(genes: {}, mutationChance = 0.05) {
+    this.genes = genes;
+    this.mutationChance = mutationChance;
   }  
 }  
 
@@ -24,29 +26,34 @@ class Ecosystem {
 class GeneticAlgorithm {
   ecosystem: Ecosystem;
   isRunning: boolean;
-  step: FrameRequestCallback;
+  stepFunction: stepFunctionType;
 
-  // TODO: make this constructor handle everything beneath it and accept 
-  // parameters for every class that it contains
   constructor(ecosystem: Ecosystem, stepFunction: stepFunctionType) {
     this.ecosystem = ecosystem;
     this.isRunning = false;
-    this.step = () => {
-      if (this.isRunning) {
-        stepFunction(this.ecosystem);
-        requestAnimationFrame(this.step);
-      } else {
-        console.log("Genetic algorithm is paused. Doing nothing for now...");
-      }
-    };
+    this.stepFunction = stepFunction;
+  }
+
+  step() {
+    if (this.isRunning) {
+      // if the algorithm is running, proceed to the next frame
+      this.stepFunction(this.ecosystem);
+      requestAnimationFrame(this.step);
+    } else {
+      console.log("Genetic algorithm is paused. Doing nothing for now...");
+    }
   }
 
   play() {
-    this.isRunning = true;
-    requestAnimationFrame(this.step);
+    if (!this.isRunning) {
+      this.isRunning = true;
+      requestAnimationFrame(this.step);
+    }
   }
 
   pause() {
-    this.isRunning = false;
+    if (this.isRunning) {
+      this.isRunning = false;
+    }
   }
 }
