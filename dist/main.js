@@ -181,7 +181,7 @@ function gameLoop() {
         model.step();
         // visuals
         view.update(model);
-        fitnessGramPacerTest.data.labels = Array.from({ length: model.population.length }, (_, i) => i + 1);
+        fitnessGramPacerTest.data.labels = Array.from({ length: model.generation }, (_, i) => i + 1);
         fitnessGramPacerTest.data.datasets[0].data = model.fitnessRecord;
         fitnessGramPacerTest.update();
         yield sleep(10);
