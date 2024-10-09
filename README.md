@@ -105,3 +105,37 @@ self-contained. I like the idea of being able to kind of just throw around the `
 wherever you feel like it and for it to not really cause any issues because it's all perfectly
 self-contained and safe. And maybe it even operates on a semaphore, so that asynchronous calls 
 are completely safe as well.
+
+## Design Notes - 0ct 8
+
+I think I've just finished converting the code to model-view-controller. I 
+forget why I wanted to add these notes. I think I wanted to say that the library
+should only handle the model. I think the library should handle updating the 
+model and that's it (where "model" is the data representation of the genetic
+algorithm). This enables that feature that Elliot mentioned all those years ago
+where the users can speed up the algorithm instead of holding it at their 
+browser's refresh rate.
+
+I think clients should be responsible for displaying the model. I don't give a 
+fuck man. No I do, but yeah I guess I think this library should just handle 
+putting the model together and running it and abstracting away the complex parts
+of a genetic algorithm (there aren't really any super complex parts but you 
+know what I mean).
+
+In other words, the client is responsible for the view and any 
+controller-related stuff they want to implement. I want to make it trivial to 
+change out the parts of the genetic algorithm and I think that's a reasonable 
+goal for this project.
+
+Optionally, I can release some sort of visualization library for the models? or 
+maybe some sort of driver? I want to make it easy for people to display the 
+state of the system at any point, but I think there's so much freedom that if I
+were to implement a library that tried to make displaying the GA easier, I'd 
+just be rewriting some 2d canvas graphics library that already exists. It's 
+probably easier and better for everyone if I don't implement that and I let 
+users decide how they want to do it.
+
+However, it's certainly easier to debug this stuff with a visual output. So 
+we'll see. I think that will probably mean I'll be very strongly encouraged to 
+manage a view, which means I will do everything in my power to make it easier to 
+do.
