@@ -8,15 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 console.log("Starting Terrarium!");
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 class WordGeneticAlgorithmModel {
     constructor(populationSize = 50, targetString = "hello", generation = 1) {
         // instance variables
         this.population = [];
         this.populationSize = 50;
-        this.targetStringLength = 40;
         this.targetString = "";
         this.generation = 1;
         this.averageFitness = 0;
@@ -55,7 +51,9 @@ class WordGeneticAlgorithmModel {
             this.population.push(WordGeneticAlgorithmModel.produceOffspring(parentA, parentB));
         }
     }
-    static produceOffspring(parentA, parentB, mutationChance = 0.1) {
+    static produceOffspring(parentA, parentB, mutationChance = 0.02) {
+        // for debugging
+        console.log(parentA);
         let offspring = parentA.split("");
         for (let i = 0; i < offspring.length; i++) {
             if (Math.random() > 0.5) {
@@ -91,105 +89,16 @@ class WordGeneticAlgorithmModel {
 }
 // static variables
 WordGeneticAlgorithmModel.possibleStringChars = "abcdefghijklmnopqrstuvwxyz ";
-class WordGeneticAlgorithmView {
-    constructor(displayElement) {
-        this.displayElement = displayElement;
-    }
-    update(model) {
-        // clear the display
-        this.displayElement.innerHTML = "";
-        // add current words
-        let wordsContainer = document.createElement("div");
-        wordsContainer.style.display = "flex";
-        wordsContainer.style.alignItems = "center";
-        wordsContainer.style.justifyContent = "center";
-        wordsContainer.style.flexDirection = "column";
-        this.displayElement.appendChild(wordsContainer);
-        for (const word of model.population) {
-            let currentWordParagraph = document.createElement("p");
-            if (word == model.targetString) {
-                currentWordParagraph.innerHTML = `<span style="border: 1px solid green">${word}</span>`;
-            }
-            else {
-                currentWordParagraph.innerText = word;
-            }
-            wordsContainer.appendChild(currentWordParagraph);
-        }
-        // add metadata container
-        let metadataContainer = document.createElement("div");
-        metadataContainer.style.display = "flex";
-        metadataContainer.style.alignItems = "center";
-        metadataContainer.style.justifyContent = "center";
-        metadataContainer.style.flexDirection = "column";
-        this.displayElement.appendChild(metadataContainer);
-        // add target word
-        let targetStringParagraph = document.createElement("p");
-        targetStringParagraph.innerText = `Target string is "${model.targetString}".`;
-        metadataContainer.appendChild(targetStringParagraph);
-        // display generation
-        let generationParagraph = document.createElement("p");
-        generationParagraph.innerText = `Current generation is ${model.generation}.`;
-        metadataContainer.appendChild(generationParagraph);
-        // display generation's average fitness
-        let averageFitnessParagraph = document.createElement("p");
-        averageFitnessParagraph.innerText = `Average fitness of this generation is ${model.averageFitness.toFixed(2)}.`;
-        metadataContainer.appendChild(averageFitnessParagraph);
-    }
-}
-class WordGeneticAlgorithmController {
-    constructor() {
-        console.log("Created a new controller!");
-    }
-}
-let model = new WordGeneticAlgorithmModel(20, "geronimo geoff", 1);
-let view = new WordGeneticAlgorithmView(document.querySelector("#view"));
-// chart for metrics
-const ctx = document.getElementById("myChart");
-let fitnessGramPacerTest = new Chart(ctx, {
-    type: "line",
-    data: {
-        labels: Array.from({ length: model.population.length }, (_, i) => i + 1),
-        datasets: [{
-                label: "Average Fitness",
-                data: [0, 1, 2, 3],
-                borderWidth: 1
-            }]
-    },
-    options: {
-        animation: false,
-        maintainAspectRatio: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                min: 0,
-                max: 1
-            },
-            x: {
-                type: "linear",
-                position: "bottom",
-                ticks: {
-                    autoSkip: true,
-                    maxTicksLimit: 500
-                }
-            }
-        },
-        responsive: true
-    }
-});
+let model = new WordGeneticAlgorithmModel(20, "wumble ligament foresight worthy", 1);
 function gameLoop() {
     return __awaiter(this, void 0, void 0, function* () {
         model.step();
-        // visuals
-        view.update(model);
-        fitnessGramPacerTest.data.labels = Array.from({ length: model.generation }, (_, i) => i + 1);
-        fitnessGramPacerTest.data.datasets[0].data = model.fitnessRecord;
-        fitnessGramPacerTest.update();
-        yield sleep(10);
         if (!model.population.includes(model.targetString)) {
             requestAnimationFrame(gameLoop);
         }
         else {
             console.info("we're done!");
+            console.info(model.generation);
         }
     });
 }
