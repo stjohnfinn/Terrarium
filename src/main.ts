@@ -1,5 +1,13 @@
 console.log("Starting Terrarium!");
 
+interface GeneticAlgorithmModel {
+  // methods
+  step(): void;
+
+  // properties
+  population: any[];
+}
+
 class WordGeneticAlgorithmModel {
   // instance variables
   population: string[] = [];
@@ -103,17 +111,32 @@ class WordGeneticAlgorithmModel {
   }
 }
 
+class GeneticAlgorithm {
+  model: GeneticAlgorithmModel;
+  isFinished: (model: GeneticAlgorithmModel) => boolean;
+
+  constructor(model: GeneticAlgorithmModel, isFinished: (model: GeneticAlgorithmModel) => boolean) {
+    this.model = model;
+    this.isFinished = isFinished;
+  }
+
+  step(): void {
+    this.model.step();
+  }
+}
 
 let model = new WordGeneticAlgorithmModel(20, "wumble ligament foresight worthy", 1);
 
-async function gameLoop(): Promise<void> {
-  model.step();
+let geneticAlgorithm = new GeneticAlgorithm(model, model => {return model.population.includes(model.targetString)});
 
-  if (!model.population.includes(model.targetString)) {
+async function gameLoop(): Promise<void> {
+  geneticAlgorithm.step();
+
+  if (!geneticAlgorithm.model.population.includes(geneticAlgorithm.model.targetString)) {
     requestAnimationFrame(gameLoop);
   } else {
     console.info("we're done!");
-    console.info(model.generation);
+    console.info(geneticAlgorithm.model.generation);
   }
 }
 
