@@ -12,6 +12,7 @@
  */
 interface Organism<T> {
   genes: T;
+  mutationChance: number;
 }
 
 /**
@@ -22,7 +23,6 @@ interface Organism<T> {
  */
 interface GeneticAlgorithmModel<T> {
   populationSize: number;
-  mutationRate: number;
   generation: number;
   population: T[];
 }
@@ -30,6 +30,8 @@ interface GeneticAlgorithmModel<T> {
 class GeneticAlgorithm<T> {
   stepFunction: (model: GeneticAlgorithmModel<T>) => void;
   shouldTerminate: (model: GeneticAlgorithmModel<T>) => boolean;
+  shouldProgressGeneration: (model: GeneticAlgorithmModel<T>) => boolean;
+  produceNextGeneration: (model: GeneticAlgorithmModel<T>) => GeneticAlgorithmModel<T>;
   createOrganism: () => T;
   calculateFitness: (organism: T) => number;
   crossover: (parentA: T, parentB: T) => T;
@@ -45,22 +47,41 @@ class GeneticAlgorithm<T> {
     calculateFitness: (organism: T) => number,
     crossover: (parentA: T, parentB: T) => T,
     mutate: (organism: T) => T,
-    // this is shouldTerminateEntireThing, not shouldTerminateGeneration because
-    // shouldTerminateGeneration is handled inside the user-defined stepFunction
     shouldTerminate: (model: GeneticAlgorithmModel<T>) => boolean,
-    // properties
-    populationSize: number = 50,
-    mutationRate: number = 0.02) {
+    shouldProgressGeneration: (model: GeneticAlgorithmModel<T>) => boolean,
+    // this is super ugly, but I decided it was the best method for having a 
+    // default value.
+    produceNextGeneration: (model: GeneticAlgorithmModel<T>) => GeneticAlgorithmModel<T> = (model: GeneticAlgorithmModel<T>) => {
+      let newModel = structuredClone(model);
+      newModel.generation++;
 
-    // input validation ********************************************************
-    if (mutationRate < 0 || mutationRate > 1) {
-      throw new Error("mutationRate must be a value between 0 and 1. Conceptually, it's a percentage in decimal form.");
-    }
+      // find two best parents
+      const sortedPopulation: T[] = newModel.population.sort((a, b) => {
+        return this.calculateFitness(b) - this.calculateFitness(a);
+      });
+
+      const parentA: T = sortedPopulation[0];
+      const parentB: T = sortedPopulation[1];
+
+      // perform crossover
+      newModel.population = [];
+      for (let i: number = 0; i < newModel.populationSize; i++) {
+        newModel.population.push(this.crossover(parentA, parentB));
+      }
+
+      // mutation
+      for (let i: number = 0; i < newModel.populationSize; i++) {
+        newModel.population[i] = this.mutate(newModel.population[i]);
+      }
+
+      return newModel;
+    },
+    // properties
+    populationSize: number = 50) {
 
     // initialize the model ****************************************************
     this.model = {
       populationSize: populationSize,
-      mutationRate: mutationRate,
       generation: 0,
       population: [],
     }
@@ -68,6 +89,8 @@ class GeneticAlgorithm<T> {
     // methods *****************************************************************
     this.createOrganism = createOrganism;
     this.shouldTerminate = shouldTerminate;
+    this.shouldProgressGeneration = shouldProgressGeneration;
+    this.produceNextGeneration = produceNextGeneration;
     this.stepFunction = stepFunction;
     this.calculateFitness = calculateFitness;
     this.crossover = crossover;
@@ -89,20 +112,25 @@ class GeneticAlgorithm<T> {
   }
 
   step(): void {
+    if (this.shouldTerminate(this.model)) {
+      // the genetic algorithm is completely finished, so let's stop
+      this.isRunning = false;
+    }
+
     // this block must come before any block that calls next()
     if (this.isRunning === false) {
       // we should NOT continue the loop, so let's just exit
       return;
     }
+    
+    // generation is finished, lets create offspring and mutate
+    if (this.shouldProgressGeneration(this.model)) {
+      this.model = this.produceNextGeneration(this.model);
+    }
 
     // we're still running the genetic algorithm, so go to the next frame
     if (this.isRunning) {
       this.next();
-    }
-
-    if (this.shouldTerminate(this.model)) {
-      // the genetic algorithm is completely finished, so let's stop
-      this.isRunning = false;
     }
   }
 

@@ -1,86 +1,107 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+/*******************************************************************************
+ * terrarium.js
+ *
+ * Purpose: defines the main classes that make up the framework.
+ */
 class GeneticAlgorithm {
-    constructor(config) {
-        this.config = config;
-        this.generation = 0;
-        this.population = this.initializePopulation();
-    }
-    initializePopulation() {
-        return Array.from({ length: this.config.populationSize }, () => {
-            const genes = this.config.createIndividual();
-            return {
-                genes,
-                fitness: this.config.calculateFitness(genes)
-            };
+    constructor(
+    // class methods
+    createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, 
+    // this is super ugly, but I decided it was the best method for having a 
+    // default value.
+    produceNextGeneration = (model) => {
+        let newModel = structuredClone(model);
+        newModel.generation++;
+        // find two best parents
+        const sortedPopulation = newModel.population.sort((a, b) => {
+            return this.calculateFitness(b) - this.calculateFitness(a);
         });
+        const parentA = sortedPopulation[0];
+        const parentB = sortedPopulation[1];
+        // perform crossover
+        newModel.population = [];
+        for (let i = 0; i < newModel.populationSize; i++) {
+            newModel.population.push(this.crossover(parentA, parentB));
+        }
+        // mutation
+        for (let i = 0; i < newModel.populationSize; i++) {
+            newModel.population[i] = this.mutate(newModel.population[i]);
+        }
+        return newModel;
+    }, 
+    // properties
+    populationSize = 50) {
+        // initialize the model ****************************************************
+        this.model = {
+            populationSize: populationSize,
+            generation: 0,
+            population: [],
+        };
+        // methods *****************************************************************
+        this.createOrganism = createOrganism;
+        this.shouldTerminate = shouldTerminate;
+        this.shouldProgressGeneration = shouldProgressGeneration;
+        this.produceNextGeneration = produceNextGeneration;
+        this.stepFunction = stepFunction;
+        this.calculateFitness = calculateFitness;
+        this.crossover = crossover;
+        this.mutate = mutate;
+        // member variables ********************************************************
+        this.isRunning = false;
+        // generate new population *************************************************
+        for (let i = 0; i < this.model.populationSize; i++) {
+            this.model.population.push(this.createOrganism());
+        }
+        /**
+         * We aren't calling this.play() in here because it's on the user to
+         * initialize the genetic algorithm object and then start it whenever they
+         * want.
+         */
     }
     step() {
-        // Create next generation
-        const newPopulation = [];
-        while (newPopulation.length < this.config.populationSize) {
-            // Select parents using tournament selection
-            const parent1 = this.tournamentSelect();
-            const parent2 = this.tournamentSelect();
-            // Create offspring
-            let offspring = this.config.crossover(parent1.genes, parent2.genes);
-            // Possibly mutate
-            if (Math.random() < this.config.mutationRate) {
-                offspring = this.config.mutate(offspring);
-            }
-            // Add to new population
-            newPopulation.push({
-                genes: offspring,
-                fitness: this.config.calculateFitness(offspring)
-            });
+        if (this.shouldTerminate(this.model)) {
+            // the genetic algorithm is completely finished, so let's stop
+            this.isRunning = false;
         }
-        this.population = newPopulation;
-        this.generation++;
-    }
-    tournamentSelect(tournamentSize = 3) {
-        let best = null;
-        for (let i = 0; i < tournamentSize; i++) {
-            const contestant = this.population[Math.floor(Math.random() * this.population.length)];
-            if (!best || contestant.fitness > best.fitness) {
-                best = contestant;
-            }
+        // this block must come before any block that calls next()
+        if (this.isRunning === false) {
+            // we should NOT continue the loop, so let's just exit
+            return;
         }
-        return best;
+        // generation is finished, lets create offspring and mutate
+        if (this.shouldProgressGeneration(this.model)) {
+            this.model = this.produceNextGeneration(this.model);
+        }
+        // we're still running the genetic algorithm, so go to the next frame
+        if (this.isRunning) {
+            this.next();
+        }
     }
-    run() {
-        return __awaiter(this, void 0, void 0, function* () {
-            while (!this.shouldTerminate()) {
-                this.step();
-                // Optional: Add a small delay to prevent blocking
-                yield new Promise(resolve => setTimeout(resolve, 0));
-            }
+    /**
+     * This is abstracted only because it's a weird looking block and it was in
+     * two places in this code and I don't really want to have to look at it.
+     *
+     * next()
+     *
+     * Purpose: add the step function to the JavaScript animation loop queue. Read
+     * up more on requestAnimationFrame docs for more information.
+     */
+    next() {
+        requestAnimationFrame(() => {
+            this.step();
         });
     }
-    shouldTerminate() {
-        var _a, _b;
-        if ((_b = (_a = this.config).terminationCondition) === null || _b === void 0 ? void 0 : _b.call(_a, this.population, this.generation)) {
-            return true;
-        }
-        if (this.config.maxGenerations && this.generation >= this.config.maxGenerations) {
-            return true;
-        }
-        return false;
+    /**
+     * play()
+     *
+     * Purpose: super abstract way to just be like "hey I want to start the
+     * algorithm".
+     */
+    play() {
+        this.isRunning = true;
+        this.next();
     }
-    // Getter methods for monitoring progress
-    getBestIndividual() {
-        return [...this.population].sort((a, b) => b.fitness - a.fitness)[0];
-    }
-    getGeneration() {
-        return this.generation;
-    }
-    getAverageFitness() {
-        return this.population.reduce((sum, ind) => sum + ind.fitness, 0) / this.population.length;
+    pause() {
+        this.isRunning = false;
     }
 }
