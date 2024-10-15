@@ -8,3 +8,4 @@ DO ALL THIS SHIT BEFORE YOU IMPLEMENT A BUNCH OF COOL EXAMPLES
 organisms aren't congruent.
 - update documentation.
 - put documentation through an LLM for proofreading and clarity.
+- add docstrings to everything in `terrarium.js`

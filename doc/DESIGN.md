@@ -139,3 +139,34 @@ However, it's certainly easier to debug this stuff with a visual output. So
 we'll see. I think that will probably mean I'll be very strongly encouraged to 
 manage a view, which means I will do everything in my power to make it easier to 
 do.
+
+## Design Notes - Oct 14
+
+I was about to write something in the usage guide about how it was hard to 
+place the `mutationRate` variable. It applies to every single organism and with
+most or maybe all genetic algorithms, it's the same across your entire 
+population. Maybe it would actually be interesting to mess with this and have
+each organism have a random mutation chance.
+
+Anyways, I struggled to place this instance variable. One of the first
+implementations of this had the `mutate` function take a single organism as its
+only argument and it placed the `mutationRate` at the `GeneticAlgorithmModel` 
+level. So when the `mutate` function was called (with only the organism in 
+scope), it couldn't know the `mutationRate`.
+
+So the decision was between passing the model to the `mutate` function and 
+putting the `mutationRate` at the organism level. I decided on the second one 
+for a couple reasons. I think it makes for a simpler implementation. It's easy
+and very small-scoped for the user to write the logic to mutate only a single 
+organism. That's the draw of this framework. You don't have to worry about 
+putting everything together. You can just write each piece of code in its own 
+little world and everything's very self contained from the user's point of view.
+Additionally, the name `mutate` kind of suggests, to me, that it operates on a
+single organism. Nature doesn't mutate an entire population at once, it 
+mutates a single organism. Technically, it operates upon a single gene at a 
+time, I guess. Maybe that's the "correct" way to implement this. I don't really
+care. I'm pretty happy with the design I chose.
+
+This design does however, mean a lot of duplicated information. I guess that's 
+why my first instinct was to put this data at the model level: the information
+is scoped to an entire model (usually). It's a marginal performance hit though.
