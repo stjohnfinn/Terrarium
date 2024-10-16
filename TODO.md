@@ -9,3 +9,13 @@ organisms aren't congruent.
 - update documentation.
 - put documentation through an LLM for proofreading and clarity.
 - add docstrings to everything in `terrarium.js`
+- test if we can remove the T from this and just replace it with `Organism`.
+
+      interface GeneticAlgorithmModel<T> {
+        populationSize: number;
+        generation: number;
+        population: T[];
+      }
+
+- if the above is true, then can we just remove the type parameter from the 
+`GeneticAlgorithm` class as well?

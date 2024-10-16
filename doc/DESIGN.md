@@ -170,3 +170,23 @@ care. I'm pretty happy with the design I chose.
 This design does however, mean a lot of duplicated information. I guess that's 
 why my first instinct was to put this data at the model level: the information
 is scoped to an entire model (usually). It's a marginal performance hit though.
+
+## Design Notes - Oct 15
+
+Ok I was just messing with the implementation and realized I'm not even calling
+the fucking `stepFunction` anywhere. everything seemed to be working fine
+because the word-guessing algorithm doesn't need a step function. Maybe that 
+means it's not a great way to test the whole framework. Whatever. I'll deal with 
+that later.
+
+So now I'm trying to figure out where to put the actual step function. I think I
+want the `next()` function to call it, but I want to diagram this out so that I
+know what I'm actually doing.
+
+Here's the diagram I came up with. I thought it would be harder. It's also 
+kind of simplified (e.g. the `requestAnimationFrame` call isn't mentioned).
+
+![step function diagram](../assets/stepFunction.png)
+
+And then I implemented it by putting the `this.stepFunction` call right above 
+the `this.next` function call.
