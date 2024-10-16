@@ -1,9 +1,9 @@
 const CHARS = "abcdefghijklmnopqrstuvwxyz";
-const TARGET_STRING = "icebreaker exotic sniper rifle"
+const TARGET_STRING = "wally"
 const TARGET_STRING_LENGTH = TARGET_STRING.length;
 const mutationChance = 0.02;
 
-class WordOrganism implements Organism<string> {
+class WordOrganism implements Organism {
   genes: string;
   mutationChance: number;
 
@@ -75,7 +75,7 @@ function mutate(organism: WordOrganism): WordOrganism {
   return mutatedOrganism;
 }
 
-function shouldTerminate(model: GeneticAlgorithmModel<WordOrganism>): boolean {
+function shouldTerminate(model: GeneticAlgorithmModel): boolean {
   let targetStringFound: boolean = false;
 
   for (let i: number = 0; i < model.populationSize; i++) {
@@ -90,17 +90,17 @@ function shouldTerminate(model: GeneticAlgorithmModel<WordOrganism>): boolean {
   return targetStringFound;
 }
 
-function shouldProgressGeneration(model: GeneticAlgorithmModel<WordOrganism>): boolean {
+function shouldProgressGeneration(model: GeneticAlgorithmModel): boolean {
   console.log("New generation!");
 
   return true;
 }
 
-function stepFunction(model: GeneticAlgorithmModel<WordOrganism>) {
+function stepFunction(model: GeneticAlgorithmModel) {
   return;
 }
 
-let geneticAlgorithm = new GeneticAlgorithm<WordOrganism>(
+let geneticAlgorithm = new GeneticAlgorithm(
   createOrganism,
   stepFunction,
   calculateFitness,

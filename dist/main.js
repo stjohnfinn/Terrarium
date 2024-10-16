@@ -1,5 +1,5 @@
 const CHARS = "abcdefghijklmnopqrstuvwxyz";
-const TARGET_STRING = "icebreaker exotic sniper rifle";
+const TARGET_STRING = "wally";
 const TARGET_STRING_LENGTH = TARGET_STRING.length;
 const mutationChance = 0.02;
 class WordOrganism {
@@ -84,66 +84,3 @@ pauseButton.innerText = "pause";
 pauseButton.addEventListener("click", () => {
     geneticAlgorithm.pause();
 });
-/**
- * TESTING AREA ################################################################
- */
-let objectA = {
-    genes: {
-        letters: "uiogioweogiw",
-        size: 124,
-        position: {
-            x: 10,
-            y: 15
-        }
-    }
-};
-let objectB = {
-    genes: {
-        letters: "awdaacwawc",
-        size: 1235,
-        position: {
-            x: 10,
-            y: 20,
-        }
-    }
-};
-let objectC = {
-    genes: {
-        letters: "axxxx",
-        size: "awd",
-        position: {
-            x: 12
-        }
-    }
-};
-/**
- * congruent()
- *
- * Purpose: determine if two organisms are congruent, where "congruent" is
- * defined as having the same general "shape" as another organism. This function
- * cannot handle checking this for every single type in existence, but we check
- * for some common ones.
- *
- * This function signature needs to be changed to expect Organism<{}> type
- * arguments.
- */
-function congruent(a, b) {
-    let areCongruent = true;
-    // simple type check
-    if (typeof a.genes != typeof b.genes) {
-        areCongruent = false;
-    }
-    // they should be objects, so check to make sure the keys are at least equal
-    if (Object.keys(objectA.genes) != Object.keys(objectB.genes)) {
-        console.log(Object.keys(objectA.genes));
-        console.log(Object.keys(objectB.genes));
-        areCongruent = false;
-    }
-    return areCongruent;
-}
-if (!congruent(objectA, objectB)) {
-    throw new Error("objects are different!");
-}
-if (congruent(objectA, objectC)) {
-    throw new Error("object are similar!");
-}

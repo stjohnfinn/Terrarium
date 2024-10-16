@@ -74,6 +74,7 @@ class GeneticAlgorithm {
         }
         // we're still running the genetic algorithm, so go to the next frame
         if (this.isRunning) {
+            this.stepFunction(this.model);
             this.next();
         }
     }

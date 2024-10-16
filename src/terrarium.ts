@@ -10,8 +10,8 @@
  * Purpose: defines the type for a single member of a genetic algorithm's 
  * population. The only assumption we make is that it has genes.
  */
-interface Organism<T> {
-  genes: T;
+interface Organism {
+  genes: unknown;
   mutationChance: number;
 }
 
@@ -21,47 +21,47 @@ interface Organism<T> {
  * Purpose: it's basically the model in the MVC design pattern. it's the "state"
  * of the genetic algorithm at any moment.
  */
-interface GeneticAlgorithmModel<T> {
+interface GeneticAlgorithmModel {
   populationSize: number;
   generation: number;
-  population: T[];
+  population: Organism[];
 }
 
 class GeneticAlgorithm<T> {
-  stepFunction: (model: GeneticAlgorithmModel<T>) => void;
-  shouldTerminate: (model: GeneticAlgorithmModel<T>) => boolean;
-  shouldProgressGeneration: (model: GeneticAlgorithmModel<T>) => boolean;
-  produceNextGeneration: (model: GeneticAlgorithmModel<T>) => GeneticAlgorithmModel<T>;
-  createOrganism: () => T;
-  calculateFitness: (organism: T) => number;
-  crossover: (parentA: T, parentB: T) => T;
-  mutate: (organism: T) => T;
+  stepFunction: (model: GeneticAlgorithmModel) => void;
+  shouldTerminate: (model: GeneticAlgorithmModel) => boolean;
+  shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean;
+  produceNextGeneration: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel;
+  createOrganism: () => Organism;
+  calculateFitness: (organism: Organism) => number;
+  crossover: (parentA: Organism, parentB: Organism) => Organism;
+  mutate: (organism: Organism) => Organism;
   
-  model: GeneticAlgorithmModel<T>;
-  isRunning: boolean;
+  model: GeneticAlgorithmModel;
+  private isRunning: boolean;
 
   constructor(
     // class methods
-    createOrganism: () => T,
-    stepFunction: (model: GeneticAlgorithmModel<T>) => void,
-    calculateFitness: (organism: T) => number,
-    crossover: (parentA: T, parentB: T) => T,
-    mutate: (organism: T) => T,
-    shouldTerminate: (model: GeneticAlgorithmModel<T>) => boolean,
-    shouldProgressGeneration: (model: GeneticAlgorithmModel<T>) => boolean,
+    createOrganism: () => Organism,
+    stepFunction: (model: GeneticAlgorithmModel) => void,
+    calculateFitness: (organism: Organism) => number,
+    crossover: (parentA: Organism, parentB: Organism) => Organism,
+    mutate: (organism: Organism) => Organism,
+    shouldTerminate: (model: GeneticAlgorithmModel) => boolean,
+    shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
-    produceNextGeneration: (model: GeneticAlgorithmModel<T>) => GeneticAlgorithmModel<T> = (model: GeneticAlgorithmModel<T>) => {
+    produceNextGeneration: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel = (model: GeneticAlgorithmModel) => {
       let newModel = structuredClone(model);
       newModel.generation++;
 
       // find two best parents
-      const sortedPopulation: T[] = newModel.population.sort((a, b) => {
+      const sortedPopulation: Organism[] = newModel.population.sort((a, b) => {
         return this.calculateFitness(b) - this.calculateFitness(a);
       });
 
-      const parentA: T = sortedPopulation[0];
-      const parentB: T = sortedPopulation[1];
+      const parentA: Organism = sortedPopulation[0];
+      const parentB: Organism = sortedPopulation[1];
 
       // perform crossover
       newModel.population = [];
@@ -130,6 +130,7 @@ class GeneticAlgorithm<T> {
 
     // we're still running the genetic algorithm, so go to the next frame
     if (this.isRunning) {
+      this.stepFunction(this.model);
       this.next();
     }
   }
