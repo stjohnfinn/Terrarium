@@ -27,7 +27,7 @@ interface GeneticAlgorithmModel {
   population: Organism[];
 }
 
-class GeneticAlgorithm<T> {
+class GeneticAlgorithm {
   stepFunction: (model: GeneticAlgorithmModel) => void;
   shouldTerminate: (model: GeneticAlgorithmModel) => boolean;
   shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean;
