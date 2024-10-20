@@ -1,14 +1,20 @@
 /*******************************************************************************
  * terrarium.js
  * 
- * Purpose: defines the main classes that make up the framework.
+ * Defines the main classes and interfaces that make up the framework.
  */
 
 /**
  * Organism
  * 
- * Purpose: defines the type for a single member of a genetic algorithm's 
+ * Defines the type for a single member of a genetic algorithm's 
  * population. The only assumption we make is that it has genes.
+ * 
+ * `genes`: the value of this member variable represents the 
+ * organism's genes.
+ * 
+ * `mutationChance`: the chance for each gene to mutate when 
+ * offspring are created.
  */
 interface Organism {
   genes: unknown;
@@ -18,8 +24,8 @@ interface Organism {
 /**
  * GeneticAlgorithmModel
  * 
- * Purpose: it's basically the model in the MVC design pattern. it's the "state"
- * of the genetic algorithm at any moment.
+ * The "model" that represents the state of a genetic algorithm at any given 
+ * moment.
  */
 interface GeneticAlgorithmModel {
   populationSize: number;
@@ -27,19 +33,120 @@ interface GeneticAlgorithmModel {
   population: Organism[];
 }
 
+/**
+ * GeneticAlgorithm
+ * 
+ * The "controller" that manages a genetic algorithm model. This class handles
+ * the flow of the genetic algorithm from start to finish, from frame to frame,
+ * and from generation to generation.
+ */
 class GeneticAlgorithm {
-  stepFunction: (model: GeneticAlgorithmModel) => void;
-  shouldTerminate: (model: GeneticAlgorithmModel) => boolean;
-  shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean;
-  produceNextGeneration: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel;
-  createOrganism: () => Organism;
-  calculateFitness: (organism: Organism) => number;
-  crossover: (parentA: Organism, parentB: Organism) => Organism;
-  mutate: (organism: Organism) => Organism;
+  /**
+   * stepFunction
+   * Progresses a genetic algorithm model to it's next frame.
+   * 
+   * @param model - the GeneticAlgorithmModel that the step function should
+   * progress.
+   */
+  private stepFunction: (model: GeneticAlgorithmModel) => void;
+  /**
+   * shouldTerminate
+   * checks if the genetic algorithm should stop running
+   * 
+   * @param model - the GeneticAlgorithmModel that should be checked.
+   * 
+   * @returns a boolean value that represents a yes or no answer to "should 
+   * this genetic algorithm terminate?". 
+   */
+  private shouldTerminate: (model: GeneticAlgorithmModel) => boolean;
+  /**
+   * shouldProgressGeneration
+   * checks if the genetic algorithm should progress to the next generation
+   * 
+   * @param model - the GeneticAlgorithmModel that should be checked.
+   * 
+   * @returns a boolean value that represents a yes or no answer to "should 
+   * this genetic algorithm progress to the next generation?".
+   */
+  private shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean;
+  /**
+   * produceNextGeneration
+   * this function is called to produce the next generation after a generation
+   * ends.
+   * 
+   * @param model - the GeneticAlgorithmModel that serves as the starting point.
+   * 
+   * @returns a GeneticAlgorithmModel that has the new generation.
+   */
+  private produceNextGeneration: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel;
+  /**
+   * createOrganism
+   * used to create the firstGeneration and optionally, used in more places than
+   * that (but that's up to user's discretion).
+   * 
+   * @returns a completely new Organism.
+   */
+  private createOrganism: () => Organism;
+  /**
+   * calculateFitness
+   * calculates the fitness of a single organism.
+   * 
+   * @param organism - the organism that should be analyzed.
+   * 
+   * @returns - the number value of the organism's fitness
+   */
+  private calculateFitness: (organism: Organism) => number;
+  /**
+   * crossover
+   * performs "reproduction" of two organisms, producing a single offspring
+   * 
+   * @param parentA - the first parent organism
+   * @param parentB - the second parent organism
+   * 
+   * @returns the child organism
+   */
+  private crossover: (parentA: Organism, parentB: Organism) => Organism;
+  /**
+   * mutate
+   * mutates a single organism
+   * 
+   * @param organism - the organism that should be mutated
+   * 
+   * @returns the mutated organism
+   */
+  private mutate: (organism: Organism) => Organism;
   
+  /**
+   * model - the GeneticAlgorithmModel that this object manages.
+   */
   model: GeneticAlgorithmModel;
+  /**
+   * isRunning - represents the "running" state of the genetic algorithm at the 
+   * moment.
+   */
   private isRunning: boolean;
 
+  /**
+   * 
+   * @param createOrganism user-defined function that will be used as the 
+   * class's createOrganism function
+   * @param stepFunction user-defined function that will be used as the 
+   * objects's stepFunction function
+   * @param calculateFitness user-defined function that will be used as the 
+   * object's calculateFitness function
+   * @param crossover user-defined function that will be used as the object's
+   * crossover function
+   * @param mutate user-defined function that will be used as the object's 
+   * mutate function
+   * @param shouldTerminate user-defined function that will be used as the 
+   * object's shouldTerminate function 
+   * @param shouldProgressGeneration user-defined function that will be used as 
+   * the object's shouldProgressGeneration function
+   * @param produceNextGeneration user-defined function that will be used as the
+   * object's produceNextGeneration function
+   * @param populationSize the number of organisms that the first generation
+   * will start with
+   */
   constructor(
     // class methods
     createOrganism: () => Organism,
@@ -111,7 +218,15 @@ class GeneticAlgorithm {
      */
   }
 
-  step(): void {
+  /**
+   * step
+   * this function handles the progression & flow of the genetic algorithm. it 
+   * progresses from frame to frame, generation to generation, and stops running
+   * if that's appropriate.
+   * 
+   * @returns nothing
+   */
+  private step(): void {
     if (this.shouldTerminate(this.model)) {
       // the genetic algorithm is completely finished, so let's stop
       this.isRunning = false;
@@ -144,7 +259,7 @@ class GeneticAlgorithm {
    * Purpose: add the step function to the JavaScript animation loop queue. Read
    * up more on requestAnimationFrame docs for more information.
    */
-  next(): void {
+  private next(): void {
     requestAnimationFrame(() => {
       this.step();
     });

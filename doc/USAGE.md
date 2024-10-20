@@ -244,4 +244,4 @@ documentation.
 Good luck!
 
 If you have any questions, you can find my contact information 
-[on my website](https://finnstjohn.dev/).
+[on my website](https://finnstjohn.dev/). Please don't hesitate to reach out!

@@ -16,14 +16,32 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #052060;
+  background: rgb(5, 32, 96);
   font-family: monospace;
-  color: #faebd7;
+  color: rgb(250, 235, 215);
 }
 
 div > div {
   padding: 1rem;
   gap: 0.25rem;
-  border: 1px solid #faebd7;
+  border: 1px solid rgb(250, 235, 215);
   margin: 1rem;
+}
+
+button {
+  text-transform: uppercase;
+  font-family: Archivo;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgb(250, 235, 215);
+  text-decoration: underline;
+}
+
+button:hover {
+  color: rgb(184, 172, 158);
+}
+
+button:active {
+  color: rgb(104, 97, 89);
 }
