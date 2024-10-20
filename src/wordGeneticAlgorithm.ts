@@ -25,7 +25,7 @@ function createOrganism(): WordOrganism {
 }
 
 function crossover(parentA: WordOrganism, parentB: WordOrganism): WordOrganism {
-  let offspring = structuredClone(parentA);
+  let offspring: WordOrganism = structuredClone(parentA);
 
   for (let i: number = 0; i < offspring.genes.length; i++) {
 

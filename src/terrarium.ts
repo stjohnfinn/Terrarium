@@ -142,10 +142,10 @@ class GeneticAlgorithm {
     createOrganism: () => Organism,
     stepFunction: (model: GeneticAlgorithmModel) => void,
     calculateFitness: (organism: Organism) => number,
+    crossover: (parentA: Organism, parentB: Organism) => Organism,
     mutate: (organism: Organism) => Organism,
     shouldTerminate: (model: GeneticAlgorithmModel) => boolean,
     shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean,
-    crossover: (parentA: Organism, parentB: Organism) => Organism,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
     produceNextGeneration?: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel,
