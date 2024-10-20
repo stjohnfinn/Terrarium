@@ -145,7 +145,7 @@ class GeneticAlgorithm {
     mutate: (organism: Organism) => Organism,
     shouldTerminate: (model: GeneticAlgorithmModel) => boolean,
     shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean,
-    crossover?: (parentA: Organism, parentB: Organism) => Organism,
+    crossover: (parentA: Organism, parentB: Organism) => Organism,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
     produceNextGeneration?: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel,
@@ -166,9 +166,9 @@ class GeneticAlgorithm {
     this.shouldProgressGeneration = shouldProgressGeneration;
     this.stepFunction = stepFunction;
     this.calculateFitness = calculateFitness;
-    this.crossover = crossover ?? this.prefabs.crossover.standard.bind(this);
-    this.produceNextGeneration = produceNextGeneration ?? this.prefabs.produceNextGeneration.standard.bind(this);
+    this.crossover = crossover;
     this.mutate = mutate;
+    this.produceNextGeneration = produceNextGeneration ?? this.prefabs.produceNextGeneration.standard.bind(this);
 
     // member variables ********************************************************
     this.debug = debug;
