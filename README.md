@@ -37,12 +37,13 @@ model-view-controller design (MVC).
 ### Basic Usage:
 
 1. Define the necessary functions:
-    * stepFunction
-    * crossover
     * createOrganism
+    * stepFunction
+    * calculateFitness
+    * crossover
     * mutate
     * shouldTerminate
-    * calculateFitness
+    * shouldProgressGeneration
 1. Pick out your hyperparameters:
     * populationSize
     * mutationRate
@@ -55,8 +56,7 @@ model-view-controller design (MVC).
           crossover,
           mutate,
           shouldTerminate,
-          populationSize,
-          mutationRate, 
+          shouldProgressGeneration
         );
 
 1. Start the genetic algorithm.
@@ -65,14 +65,15 @@ model-view-controller design (MVC).
 
 1. Optionally, read the model and display it however you like:
 
+        # this infinite loop probably isn't the best way to do this
         while (true) {
           display(geneticAlgorithm.model);
         }
 
     > **Note**: you have to write the code for `display()`. This function can be
-    thought of as the "view" in MVC.
+    thought of as the "view" in MVC.f
 
 ## Other Documentation
 
-* [In-Depth Usage Guide](./doc/USAGE.md);
-* [Design Notes](./doc/DESIGN.md);
+* [In-Depth Usage Guide](./doc/USAGE.md)
+* [Design Notes](./doc/DESIGN.md)

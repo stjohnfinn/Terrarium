@@ -14,7 +14,7 @@
  * `mutationChance`: the chance for each gene to mutate when 
  * offspring are created.
  */
-interface Organism {
+export interface Organism {
   genes: unknown;
   mutationChance: number;
 }
@@ -23,7 +23,7 @@ interface Organism {
  * The "model" that represents the state of a genetic algorithm at any given 
  * moment.
  */
-interface GeneticAlgorithmModel {
+export interface GeneticAlgorithmModel {
   populationSize: number;
   generation: number;
   population: Organism[];
@@ -34,7 +34,7 @@ interface GeneticAlgorithmModel {
  * the flow of the genetic algorithm from start to finish, from frame to frame,
  * and from generation to generation.
  */
-class GeneticAlgorithm {
+export class GeneticAlgorithm {
   /**
    * Progresses a genetic algorithm model to it's next frame.
    * 
@@ -146,12 +146,11 @@ class GeneticAlgorithm {
     mutate: (organism: Organism) => Organism,
     shouldTerminate: (model: GeneticAlgorithmModel) => boolean,
     shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean,
+    populationSize: number = 50,
+    debug: boolean = false,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
-    produceNextGeneration?: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel,
-    // properties
-    populationSize: number = 50,
-    debug: boolean = false) {
+    produceNextGeneration?: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel) {
 
     // initialize the model ****************************************************
     this.model = {
@@ -175,10 +174,7 @@ class GeneticAlgorithm {
     this.isRunning = false;
     
     // generate new population *************************************************
-    for (let i = 0; i < this.model.populationSize; i++) {
-      this.log("creating the first generation.");
-      this.model.population.push(this.createOrganism());
-    }
+    this.initializePopulation();
 
     /**
      * We aren't calling this.play() in here because it's on the user to 
@@ -242,6 +238,21 @@ class GeneticAlgorithm {
   }
 
   /**
+   * Adds `populationSize` organisms to the model's population array using the 
+   * user-defined `createOrganism` function.
+   * 
+   * This code was used raw in the constructor, then it was put into a function
+   * so that there is a "reset" function.
+   */
+  private initializePopulation(): void {
+    this.log("initializing the population.")
+    this.model.population = [];
+    for (let i = 0; i < this.model.populationSize; i++) {
+      this.model.population.push(this.createOrganism());
+    }
+  }
+
+  /**
    * Purpose: super abstract way to just be like "hey I want to start the 
    * algorithm".
    */
@@ -254,9 +265,21 @@ class GeneticAlgorithm {
     }
   }
 
+  /**
+   * pauses the genetic algorithm.
+   */
   pause(): void {
     this.log("stopping the GA.");
     this.isRunning = false;
+  }
+
+  reset(): void {
+    this.log("stopping and resetting the GA.");
+
+    this.pause();
+    requestAnimationFrame(() => {
+      this.initializePopulation();
+    });
   }
 
   /**

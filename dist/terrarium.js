@@ -8,7 +8,7 @@
  * the flow of the genetic algorithm from start to finish, from frame to frame,
  * and from generation to generation.
  */
-class GeneticAlgorithm {
+export class GeneticAlgorithm {
     /**
      *
      * @param createOrganism user-defined function that will be used as the
@@ -32,12 +32,10 @@ class GeneticAlgorithm {
      */
     constructor(
     // class methods
-    createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, 
+    createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, populationSize = 50, debug = false, 
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
-    produceNextGeneration, 
-    // properties
-    populationSize = 50, debug = false) {
+    produceNextGeneration) {
         this.prefabs = {
             produceNextGeneration: {
                 /**
@@ -90,10 +88,7 @@ class GeneticAlgorithm {
         this.debug = debug;
         this.isRunning = false;
         // generate new population *************************************************
-        for (let i = 0; i < this.model.populationSize; i++) {
-            this.log("creating the first generation.");
-            this.model.population.push(this.createOrganism());
-        }
+        this.initializePopulation();
         /**
          * We aren't calling this.play() in here because it's on the user to
          * initialize the genetic algorithm object and then start it whenever they
@@ -149,6 +144,20 @@ class GeneticAlgorithm {
         });
     }
     /**
+     * Adds `populationSize` organisms to the model's population array using the
+     * user-defined `createOrganism` function.
+     *
+     * This code was used raw in the constructor, then it was put into a function
+     * so that there is a "reset" function.
+     */
+    initializePopulation() {
+        this.log("initializing the population.");
+        this.model.population = [];
+        for (let i = 0; i < this.model.populationSize; i++) {
+            this.model.population.push(this.createOrganism());
+        }
+    }
+    /**
      * Purpose: super abstract way to just be like "hey I want to start the
      * algorithm".
      */
@@ -159,9 +168,19 @@ class GeneticAlgorithm {
             this.next();
         }
     }
+    /**
+     * pauses the genetic algorithm.
+     */
     pause() {
         this.log("stopping the GA.");
         this.isRunning = false;
+    }
+    reset() {
+        this.log("stopping and resetting the GA.");
+        this.pause();
+        requestAnimationFrame(() => {
+            this.initializePopulation();
+        });
     }
     /**
      * can be used to log content to the console, only actually logs stuff if the

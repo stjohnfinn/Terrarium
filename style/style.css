@@ -17,7 +17,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   background: rgb(5, 32, 96);
-  font-family: monospace;
+  font-family: Archivo;
   color: rgb(250, 235, 215);
 }
 
@@ -46,4 +46,8 @@ button:active {
   margin: 1rem;
   height: 400px;
   width: 400px;
+}
+
+#view {
+  flex-wrap: wrap;
 }
