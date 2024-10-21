@@ -27,6 +27,7 @@ export interface GeneticAlgorithmModel {
   populationSize: number;
   generation: number;
   population: Organism[];
+  frameCountSinceGenStart: number;
 }
 
 /**
@@ -157,6 +158,7 @@ export class GeneticAlgorithm {
       populationSize: populationSize,
       generation: 0,
       population: [],
+      frameCountSinceGenStart: 0
     }
 
     // methods *****************************************************************
@@ -210,12 +212,15 @@ export class GeneticAlgorithm {
     // generation is finished, lets create offspring and mutate
     if (this.shouldProgressGeneration(this.model)) {
       this.log("progressing to the next generation.");
+      this.model.frameCountSinceGenStart = 0;
       this.model = this.produceNextGeneration(this.model);
     }
 
     // we're still running the genetic algorithm, so go to the next frame
     if (this.isRunning) {
       this.log("progressing to the next frame.");
+      this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
+      this.model.frameCountSinceGenStart += 1;
       this.stepFunction(this.model);
       this.next();
     }
