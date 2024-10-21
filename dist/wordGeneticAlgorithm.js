@@ -73,7 +73,7 @@ function shouldProgressGeneration(model) {
 function stepFunction(model) {
     return;
 }
-let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, Config.POPULATION_SIZE, true);
+let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, Config.POPULATION_SIZE);
 console.log(geneticAlgorithm);
 let environment = document.createElement("div");
 environment.style.display = "grid";
