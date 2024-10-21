@@ -69,6 +69,8 @@ straightforward. This is increased by 1 each time the algorithm progresses to
 the next generation.
 * `population`: this is the real meat of this model. This is an array of the 
 organisms that live in the genetic algorithm.
+* `frameCountSinceGenStart`: this is a number that counts how many frames have
+occured since the current generation started.
 
 ### GeneticAlgorithm
 
