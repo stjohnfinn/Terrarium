@@ -143,8 +143,94 @@ function shouldProgressGeneration(model: GeneticAlgorithmModel): boolean {
   return aliveCountgtOne;
 }
 
+
+/**
+ * DISPLAY LOGIC
+ */
+
+let view: HTMLDivElement = document.createElement("div");
+view.style.display = "flex";
+view.style.alignItems = "center";
+view.style.justifyContent = "space-evenly";
+document.querySelector("#view").appendChild(view);
+
+let canvas: HTMLCanvasElement = document.createElement("canvas");
+canvas.height = 250;
+canvas.width = 250;
+canvas.style.border = "1px dashed lightblue";
+view.appendChild(canvas);
+
+const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+
+function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
+  cv.getContext("2d").fillStyle = color;
+  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}
+
+let square = {
+  position: {
+    x: 40,
+    y: 20
+  },
+  velocity: {
+    x: 1,
+    y: 1
+  }
+}
+
+function keepInbound(shape, width, height) {
+  if (shape.position.x + 5 >= width) {
+    shape.position.x -= 1;
+    shape.velocity.x = -shape.velocity.x;
+  }
+
+  if (shape.position.x - 5 <= 0) {
+    shape.position.x += 1;
+    shape.velocity.x = -shape.velocity.x;
+  }
+  
+  if (shape.position.y + 5 >= height) {
+    shape.position.y -= 1;
+    shape.velocity.y = -shape.velocity.y;
+  }
+  
+  if (shape.position.y - 5 <= 0) {
+    shape.position.y += 1;
+    shape.velocity.y = -shape.velocity.y;
+  }
+
+  console.log(shape.position);
+}
+
+function draw() {
+  clearCanvas(canvas);
+
+  square.position.x += square.velocity.x;
+  square.position.y += square.velocity.y;
+  keepInbound(square, canvas.width, canvas.height);
+
+  console.log(square.position.x);
+
+  
+  
+  ctx.fillStyle = "rgb(0, 0, 0, 0.5)";
+  ctx.fillRect(square.position.x, square.position.y, 10, 10);
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+
+/**
+ * REAL MEAT OF THIS ALL
+ * 
+ * this is all of the really important stuff
+ */
+
 function stepFunction(model: GeneticAlgorithmModel): GeneticAlgorithmModel {
   let newModel: GeneticAlgorithmModel = structuredClone(model);
+
+
 
   return newModel;
 }
