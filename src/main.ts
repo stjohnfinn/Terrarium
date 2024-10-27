@@ -2,6 +2,10 @@ function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function getRandomFloat(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
 function randomizeWithMargin(initial: number, margin: number, signed: boolean = false): number {
   const min: number = initial - margin;
   const max: number = initial + margin;

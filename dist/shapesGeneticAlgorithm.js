@@ -10,12 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { GeneticAlgorithm } from "./terrarium.js";
 const MUTATION_CHANCE = 0.2;
 const POPULATION_SIZE = 30;
-const FRAME_DELAY = 25;
+const FRAME_DELAY = 0;
 const CANVAS_HEIGHT = 250;
 const CANVAS_WIDTH = 250;
 // Gene bounds
-const MIN_RADIUS = 2;
-const MAX_RADIUS = 8;
+const MIN_RADIUS = 4;
+const MAX_RADIUS = 20;
 const MIN_DAMAGE = 1;
 const MAX_DAMAGE = 4;
 const MIN_ARMOR = 2;
@@ -32,19 +32,18 @@ const MAX_POS = {
     y: CANVAS_HEIGHT - 20
 };
 const MIN_VEL = {
-    x: 1,
-    y: 1
+    x: 0.5,
+    y: 0.5
 };
 const MAX_VEL = {
-    x: 4,
-    y: 4
+    x: 2.5,
+    y: 2.5
 };
 class ShapeOrganism {
     constructor() {
         const randomRadius = getRandomInt(MIN_RADIUS, MAX_RADIUS);
         this.genes = {
             radius: randomRadius,
-            area: Math.trunc(randomRadius * 2 * Math.PI),
             damage: getRandomInt(MIN_DAMAGE, MAX_DAMAGE),
             armor: getRandomInt(MIN_ARMOR, MAX_ARMOR),
             color: {
@@ -58,13 +57,16 @@ class ShapeOrganism {
             y: getRandomInt(MIN_POS.y, MAX_POS.y)
         };
         this.velocity = {
-            x: getRandomInt(MIN_VEL.x, MAX_VEL.x),
-            y: getRandomInt(MIN_VEL.y, MAX_VEL.y)
+            x: getRandomFloat(MIN_VEL.x, MAX_VEL.x),
+            y: getRandomFloat(MIN_VEL.y, MAX_VEL.y)
         };
         this.mutationChance = MUTATION_CHANCE;
         this.health = BASE_HEALTH,
             this.isAlive = true;
         this.kills = 0;
+    }
+    getArea() {
+        return Math.PI * 2 * this.genes.radius;
     }
 }
 function createOrganism() {
@@ -78,7 +80,6 @@ function calculateFitness(organism) {
 function crossover(parentA, parentB) {
     let offspring = new ShapeOrganism();
     offspring.genes.radius = randomizeWithMargin(getAverage(parentA.genes.radius, parentB.genes.radius), 3);
-    offspring.genes.area = offspring.genes.radius * 2 * Math.PI;
     offspring.genes.damage = getRandomInt(parentA.genes.damage, parentB.genes.damage);
     offspring.genes.armor = getRandomInt(parentA.genes.armor, parentB.genes.armor);
     offspring.genes.color = {
@@ -159,11 +160,77 @@ function keepShapeInbounds(shape, xMax, yMax, xMin = 0, yMin = 0) {
     }
     return;
 }
+function distance(positionA, positionB) {
+    return Math.sqrt(Math.pow(positionA.x - positionB.x, 2) + Math.pow(positionA.y - positionB.y, 2));
+}
+function checkCollision(shapeA, shapeB) {
+    return distance(shapeA.position, shapeB.position) < shapeA.genes.radius + shapeB.genes.radius;
+}
+function fixCollision(shapeA, shapeB) {
+    if (checkCollision(shapeA, shapeB)) {
+        const m1 = shapeA.getArea();
+        const m2 = shapeB.getArea();
+        const normal = {
+            x: shapeA.position.x - shapeB.position.x,
+            y: shapeA.position.y - shapeB.position.y
+        };
+        const magnitude = distance(shapeA.position, shapeB.position);
+        if (magnitude === 0) {
+            throw new Error("Divide by 0 in physics calculation.");
+        }
+        const unitNormal = {
+            x: normal.x / magnitude,
+            y: normal.y / magnitude
+        };
+        const unitTangent = {
+            x: -unitNormal.y,
+            y: unitNormal.x
+        };
+        const v1n = unitNormal.x * shapeA.velocity.x + unitNormal.y * shapeA.velocity.y;
+        const v1t = unitTangent.x * shapeA.velocity.x + unitTangent.y * shapeA.velocity.y;
+        const v2n = unitNormal.x * shapeB.velocity.x + unitNormal.y * shapeB.velocity.y;
+        const v2t = unitTangent.x * shapeB.velocity.x + unitTangent.y * shapeB.velocity.y;
+        if (m1 + m2 === 0) {
+            throw new Error("Divide by 0 in physics calculation.");
+        }
+        const v1nAfter = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+        const v2nAfter = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+        shapeA.velocity = {
+            x: v1nAfter * unitNormal.x + v1t * unitTangent.x,
+            y: v1nAfter * unitNormal.y + v1t * unitTangent.y,
+        };
+        shapeB.velocity = {
+            x: v2nAfter * unitNormal.x + v2t * unitTangent.x,
+            y: v2nAfter * unitNormal.y + v2t * unitTangent.y,
+        };
+    }
+    return;
+}
+function applyDamage(attacker, victim) {
+    victim.health -= attacker.genes.damage / victim.genes.armor;
+    victim;
+}
 function stepFunction(model) {
     return __awaiter(this, void 0, void 0, function* () {
         for (let i = 0; i < model.population.length; i++) {
+            if (model.population[i].health <= 0) {
+                model.population[i].isAlive = false;
+            }
+            if (model.population[i].isAlive === false) {
+                continue;
+            }
             model.population[i].position.x += model.population[i].velocity.x;
             model.population[i].position.y += model.population[i].velocity.y;
+            for (let j = i + 1; j < model.population.length; j++) {
+                if (model.population[j].isAlive === false) {
+                    continue;
+                }
+                if (checkCollision(model.population[i], model.population[j])) {
+                    applyDamage(model.population[i], model.population[j]);
+                    applyDamage(model.population[j], model.population[i]);
+                }
+                fixCollision(model.population[i], model.population[j]);
+            }
             keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
         }
         return;
@@ -178,11 +245,21 @@ function display(canvas, model) {
     const OPACITY = 0.2;
     clearCanvas(canvas);
     for (const organism of model.population) {
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(${organism.genes.color.red}, ${organism.genes.color.green}, ${organism.genes.color.blue}, ${OPACITY})`;
-        ctx.arc(organism.position.x, organism.position.y, organism.genes.radius, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
+        if (organism.isAlive) {
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${organism.genes.color.red}, ${organism.genes.color.green}, ${organism.genes.color.blue}, ${OPACITY})`;
+            ctx.arc(organism.position.x, organism.position.y, organism.genes.radius, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+            // draw the health
+            ctx.font = "8px serif";
+            ctx.fillStyle = `rgb(0, 0, 0)`;
+            ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 8, organism.position.y + organism.genes.radius + 10);
+            ctx.fillStyle = `rgb(255, 0, 0)`;
+            ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
+            ctx.fillStyle = `rgb(0, 0, 255)`;
+            ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
+        }
     }
 }
 ;

@@ -2,14 +2,14 @@ import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.j
 
 const MUTATION_CHANCE: number = 0.2;
 const POPULATION_SIZE: number = 30;
-const FRAME_DELAY: number = 25;
+const FRAME_DELAY: number = 0;
 
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
 
 // Gene bounds
-const MIN_RADIUS: number = 2;
-const MAX_RADIUS: number = 8;
+const MIN_RADIUS: number = 4;
+const MAX_RADIUS: number = 20;
 const MIN_DAMAGE: number = 1;
 const MAX_DAMAGE: number = 4;
 const MIN_ARMOR: number = 2;
@@ -26,12 +26,12 @@ const MAX_POS: Vector2d = {
   y: CANVAS_HEIGHT - 20
 }
 const MIN_VEL: Vector2d = {
-  x: 1,
-  y: 1
+  x: 0.5,
+  y: 0.5
 }
 const MAX_VEL: Vector2d = {
-  x: 4,
-  y: 4
+  x: 2.5,
+  y: 2.5
 }
 
 
@@ -48,7 +48,6 @@ type Vector2d = {
 
 type ShapeGenes = {
   radius: number;
-  area: number;
   damage: number;
   armor: number;
   color: Color;
@@ -68,7 +67,6 @@ class ShapeOrganism implements Organism {
 
     this.genes = {
       radius: randomRadius,
-      area: Math.trunc(randomRadius * 2 * Math.PI),
       damage: getRandomInt(MIN_DAMAGE, MAX_DAMAGE),
       armor: getRandomInt(MIN_ARMOR, MAX_ARMOR),
       color: {
@@ -83,13 +81,17 @@ class ShapeOrganism implements Organism {
       y: getRandomInt(MIN_POS.y, MAX_POS.y)
     }
     this.velocity = {
-      x: getRandomInt(MIN_VEL.x, MAX_VEL.x),
-      y: getRandomInt(MIN_VEL.y, MAX_VEL.y)
+      x: getRandomFloat(MIN_VEL.x, MAX_VEL.x),
+      y: getRandomFloat(MIN_VEL.y, MAX_VEL.y)
     }
     this.mutationChance = MUTATION_CHANCE;
     this.health = BASE_HEALTH,
     this.isAlive = true;
     this.kills = 0;
+  }
+
+  getArea(): number {
+    return Math.PI * 2 * this.genes.radius;
   }
 }
 
@@ -112,8 +114,6 @@ function crossover(parentA: ShapeOrganism, parentB: ShapeOrganism): ShapeOrganis
     getAverage(parentA.genes.radius, parentB.genes.radius),
     3
   );
-
-  offspring.genes.area = offspring.genes.radius * 2 * Math.PI;
 
   offspring.genes.damage = getRandomInt(parentA.genes.damage, parentB.genes.damage);
 
@@ -218,12 +218,92 @@ function keepShapeInbounds(shape: ShapeOrganism, xMax: number, yMax: number, xMi
   return;
 }
 
+function distance(positionA: Vector2d, positionB: Vector2d): number {
+  return Math.sqrt(Math.pow(positionA.x - positionB.x, 2) + Math.pow(positionA.y - positionB.y, 2));
+}
+
+function checkCollision(shapeA: ShapeOrganism, shapeB: ShapeOrganism): boolean {
+  return distance(shapeA.position, shapeB.position) < shapeA.genes.radius + shapeB.genes.radius;
+}
+
+function fixCollision(shapeA: ShapeOrganism, shapeB: ShapeOrganism): void {
+  if (checkCollision(shapeA, shapeB)) {
+    const m1 = shapeA.getArea();
+    const m2 = shapeB.getArea();
+
+    const normal = {
+      x: shapeA.position.x - shapeB.position.x,
+      y: shapeA.position.y - shapeB.position.y
+    };
+
+    const magnitude = distance(shapeA.position, shapeB.position);
+
+    if (magnitude === 0) {
+      throw new Error("Divide by 0 in physics calculation.");
+    }
+
+    const unitNormal = {
+      x: normal.x / magnitude,
+      y: normal.y / magnitude
+    };
+
+    const unitTangent = {
+      x: -unitNormal.y,
+      y: unitNormal.x
+    };
+
+    const v1n = unitNormal.x * shapeA.velocity.x + unitNormal.y * shapeA.velocity.y;
+    const v1t = unitTangent.x * shapeA.velocity.x + unitTangent.y * shapeA.velocity.y;
+    const v2n = unitNormal.x * shapeB.velocity.x + unitNormal.y * shapeB.velocity.y;
+    const v2t = unitTangent.x * shapeB.velocity.x + unitTangent.y * shapeB.velocity.y;
+
+    if (m1 + m2 === 0) {
+      throw new Error("Divide by 0 in physics calculation.");
+    }
+
+    const v1nAfter = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+    const v2nAfter = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+
+    shapeA.velocity = {
+      x: v1nAfter * unitNormal.x + v1t * unitTangent.x,
+      y: v1nAfter * unitNormal.y + v1t * unitTangent.y,
+    };
+    shapeB.velocity = {
+      x: v2nAfter * unitNormal.x + v2t * unitTangent.x,
+      y: v2nAfter * unitNormal.y + v2t * unitTangent.y,
+    }
+  }
+
+  return;
+}
+
+function applyDamage(attacker: ShapeOrganism, victim: ShapeOrganism): void {
+  victim.health -= attacker.genes.damage / victim.genes.armor;victim
+}
+
 async function stepFunction(model: GeneticAlgorithmModel<ShapeOrganism>): Promise<GeneticAlgorithmModel<ShapeOrganism>> {
 
   for (let i = 0; i < model.population.length; i++) {
+    if (model.population[i].health <= 0) {
+      model.population[i].isAlive = false;
+    }
+    if (model.population[i].isAlive === false) {
+      continue;
+    }
+
     model.population[i].position.x += model.population[i].velocity.x;
     model.population[i].position.y += model.population[i].velocity.y;
-
+    
+    for (let j = i + 1; j < model.population.length; j++) {
+      if (model.population[j].isAlive === false) {
+        continue;
+      }
+      if (checkCollision(model.population[i], model.population[j])) {
+        applyDamage(model.population[i], model.population[j]);
+        applyDamage(model.population[j], model.population[i]);
+      }
+      fixCollision(model.population[i], model.population[j]);
+    }
     keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
   }
 
@@ -254,11 +334,22 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ShapeOr
   clearCanvas(canvas);
 
   for (const organism of model.population) {
-    ctx.beginPath();
-    ctx.fillStyle = `rgba(${organism.genes.color.red}, ${organism.genes.color.green}, ${organism.genes.color.blue}, ${OPACITY})`
-    ctx.arc(organism.position.x, organism.position.y, organism.genes.radius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
+    if (organism.isAlive) {
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${organism.genes.color.red}, ${organism.genes.color.green}, ${organism.genes.color.blue}, ${OPACITY})`
+      ctx.arc(organism.position.x, organism.position.y, organism.genes.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
+      
+      // draw the health
+      ctx.font = "8px serif";
+      ctx.fillStyle = `rgb(0, 0, 0)`;
+      ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 8, organism.position.y + organism.genes.radius + 10);
+      ctx.fillStyle = `rgb(255, 0, 0)`;
+      ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
+      ctx.fillStyle = `rgb(0, 0, 255)`;
+      ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
+    }
   }
 };
 
