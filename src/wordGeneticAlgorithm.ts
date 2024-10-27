@@ -44,6 +44,8 @@ function crossover(parentA: WordOrganism, parentB: WordOrganism): WordOrganism {
     }
   }
 
+  parentA = null;
+  parentB = null;
   return offspring;
 }
 
@@ -76,10 +78,11 @@ function mutate(organism: WordOrganism): WordOrganism {
     throw new Error("Mutation has created an organism that is a different species.");
   }
 
+  organism = null;
   return mutatedOrganism;
 }
 
-function shouldTerminate(model: GeneticAlgorithmModel): boolean {
+function shouldTerminate(model: GeneticAlgorithmModel<WordOrganism>): boolean {
   let targetStringFound: boolean = false;
 
   for (let i: number = 0; i < model.populationSize; i++) {
@@ -94,17 +97,17 @@ function shouldTerminate(model: GeneticAlgorithmModel): boolean {
   return targetStringFound;
 }
 
-function shouldProgressGeneration(model: GeneticAlgorithmModel): boolean {
+function shouldProgressGeneration(model: GeneticAlgorithmModel<WordOrganism>): boolean {
   console.log("New generation!");
 
   return true;
 }
 
-function stepFunction(model: GeneticAlgorithmModel) {
+function stepFunction(model: GeneticAlgorithmModel<WordOrganism>) {
   return;
 }
 
-let geneticAlgorithm: GeneticAlgorithm = new GeneticAlgorithm(
+let geneticAlgorithm: GeneticAlgorithm<WordOrganism> = new GeneticAlgorithm(
   createOrganism,
   stepFunction,
   calculateFitness,
@@ -114,8 +117,6 @@ let geneticAlgorithm: GeneticAlgorithm = new GeneticAlgorithm(
   shouldProgressGeneration, 
   Config.POPULATION_SIZE
 );
-
-console.log(geneticAlgorithm);
 
 let environment: HTMLDivElement = document.createElement("div");
 environment.style.display = "grid";
@@ -172,7 +173,7 @@ view.style.justifyContent = "space-between";
 
 document.querySelector("#view").appendChild(view);
 
-function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel): void {
+function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel<WordOrganism>): void {
   environment.innerHTML = "";
 
   for (const word of model.population) {

@@ -1,6 +1,39 @@
 import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.js";
 
-const MUTATION_CHANCE = 0.2;
+const MUTATION_CHANCE: number = 0.2;
+const POPULATION_SIZE: number = 30;
+const FRAME_DELAY: number = 25;
+
+const CANVAS_HEIGHT: number = 250;
+const CANVAS_WIDTH: number = 250;
+
+// Gene bounds
+const MIN_RADIUS: number = 2;
+const MAX_RADIUS: number = 8;
+const MIN_DAMAGE: number = 1;
+const MAX_DAMAGE: number = 4;
+const MIN_ARMOR: number = 2;
+const MAX_ARMOR: number = 10;
+const MIN_COLOR: number = 0;
+const MAX_COLOR: number = 255;
+const BASE_HEALTH: number = 15;
+const MIN_POS: Vector2d = {
+  x: 20,
+  y: 20
+}
+const MAX_POS: Vector2d = {
+  x: CANVAS_WIDTH - 20,
+  y: CANVAS_HEIGHT - 20
+}
+const MIN_VEL: Vector2d = {
+  x: 1,
+  y: 1
+}
+const MAX_VEL: Vector2d = {
+  x: 4,
+  y: 4
+}
+
 
 type Color = {
   red: number;
@@ -8,19 +41,17 @@ type Color = {
   blue: number;
 }
 
-type Position = {
+type Vector2d = {
   x: number;
   y: number;
 }
 
 type ShapeGenes = {
-  height: number;
-  width: number;
+  radius: number;
   area: number;
   damage: number;
   armor: number;
   color: Color;
-  position: Position;
 }
 
 class ShapeOrganism implements Organism {
@@ -29,30 +60,34 @@ class ShapeOrganism implements Organism {
   isAlive: boolean;
   kills: number;
   health: number;
+  velocity: Vector2d;
+  position: Vector2d;
 
   constructor() {
-    const randomHeight: number = getRandomInt(4, 20);
-    const randomWidth: number = getRandomInt(4, 20);
+    const randomRadius: number = getRandomInt(MIN_RADIUS, MAX_RADIUS);
 
     this.genes = {
-      height: randomHeight,
-      width: randomWidth,
-      area: randomHeight * randomWidth,
-      damage: getRandomInt(1, 4),
-      armor: getRandomInt(2, 10),
+      radius: randomRadius,
+      area: Math.trunc(randomRadius * 2 * Math.PI),
+      damage: getRandomInt(MIN_DAMAGE, MAX_DAMAGE),
+      armor: getRandomInt(MIN_ARMOR, MAX_ARMOR),
       color: {
-        red: getRandomInt(0, 255),
-        green: getRandomInt(0, 255),
-        blue: getRandomInt(0, 255)
-      },
-      position: {
-        x: 0,
-        y: 0
-      },
+        red: getRandomInt(MIN_COLOR, MAX_COLOR),
+        green: getRandomInt(MIN_COLOR, MAX_COLOR),
+        blue: getRandomInt(MIN_COLOR, MAX_COLOR)
+      }
     };
     
+    this.position = {
+      x: getRandomInt(MIN_POS.x, MAX_POS.x),
+      y: getRandomInt(MIN_POS.y, MAX_POS.y)
+    }
+    this.velocity = {
+      x: getRandomInt(MIN_VEL.x, MAX_VEL.x),
+      y: getRandomInt(MIN_VEL.y, MAX_VEL.y)
+    }
     this.mutationChance = MUTATION_CHANCE;
-    this.health = 15,
+    this.health = BASE_HEALTH,
     this.isAlive = true;
     this.kills = 0;
   }
@@ -73,17 +108,12 @@ function calculateFitness(organism: ShapeOrganism): number {
 function crossover(parentA: ShapeOrganism, parentB: ShapeOrganism): ShapeOrganism {
   let offspring: ShapeOrganism = new ShapeOrganism();
 
-  offspring.genes.height = randomizeWithMargin(
-    getAverage(parentA.genes.height, parentB.genes.height),
+  offspring.genes.radius = randomizeWithMargin(
+    getAverage(parentA.genes.radius, parentB.genes.radius),
     3
   );
 
-  offspring.genes.width = randomizeWithMargin(
-    getAverage(parentA.genes.width, parentB.genes.width),
-    3
-  );
-
-  offspring.genes.area = offspring.genes.height * offspring.genes.width;
+  offspring.genes.area = offspring.genes.radius * 2 * Math.PI;
 
   offspring.genes.damage = getRandomInt(parentA.genes.damage, parentB.genes.damage);
 
@@ -99,127 +129,59 @@ function crossover(parentA: ShapeOrganism, parentB: ShapeOrganism): ShapeOrganis
 }
 
 function mutate(organism: ShapeOrganism): ShapeOrganism {
-  let mutatedOrganism: ShapeOrganism = structuredClone(organism);
-
   // we need to individually perform mutation for each of the genes
 
   // height first
   if (Math.random() < MUTATION_CHANCE) {
-    mutatedOrganism.genes.height = clamp(randomizeWithMargin(mutatedOrganism.genes.height, 3), 4, 20);
-  }
-
-  // width next
-  if (Math.random() < MUTATION_CHANCE) {
-    mutatedOrganism.genes.width = clamp(randomizeWithMargin(mutatedOrganism.genes.width, 3), 4, 20);
+    organism.genes.radius = clamp(randomizeWithMargin(organism.genes.radius, 3), 4, 20);
   }
 
   // damage
   if (Math.random() < MUTATION_CHANCE) {
-    mutatedOrganism.genes.damage = clamp(randomizeWithMargin(mutatedOrganism.genes.damage, 1), 1, 4);
+    organism.genes.damage = clamp(randomizeWithMargin(organism.genes.damage, 1), 1, 4);
   }
 
   // armor
   if (Math.random() < MUTATION_CHANCE) {
-    mutatedOrganism.genes.armor = clamp(randomizeWithMargin(mutatedOrganism.genes.damage, 3), 1, 10);
+    organism.genes.armor = clamp(randomizeWithMargin(organism.genes.damage, 3), 1, 10);
   }
 
   // color
-  mutatedOrganism.genes.color = {
-    red: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : mutatedOrganism.genes.color.red,
-    green: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : mutatedOrganism.genes.color.green,
-    blue: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : mutatedOrganism.genes.color.blue
+  organism.genes.color = {
+    red: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.red,
+    green: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.green,
+    blue: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.blue
   };
 
-  return mutatedOrganism;
+  return organism;
 }
 
-function shouldTerminate(model: GeneticAlgorithmModel): boolean {
+function shouldTerminate(model: GeneticAlgorithmModel<ShapeOrganism>): boolean {
   return false;
 }
 
-function shouldProgressGeneration(model: GeneticAlgorithmModel): boolean {
+function shouldProgressGeneration(model: GeneticAlgorithmModel<ShapeOrganism>): boolean {
   let aliveCountgtOne: boolean = model.population.reduce((accumulator: number, currentValue: ShapeOrganism): number => accumulator + Number(currentValue.isAlive), 0) <= 1;
 
   return aliveCountgtOne;
 }
 
-
-/**
- * DISPLAY LOGIC
- */
-
 let view: HTMLDivElement = document.createElement("div");
 view.style.display = "flex";
 view.style.alignItems = "center";
+view.style.flexDirection = "column";
+view.style.gap = "1rem";
 view.style.justifyContent = "space-evenly";
-document.querySelector("#view").appendChild(view);
 
 let canvas: HTMLCanvasElement = document.createElement("canvas");
-canvas.height = 250;
-canvas.width = 250;
+canvas.height = CANVAS_HEIGHT;
+canvas.width = CANVAS_WIDTH;
 canvas.style.border = "1px dashed lightblue";
-view.appendChild(canvas);
-
-const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 
 function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
   cv.getContext("2d").fillStyle = color;
   cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
 }
-
-let square = {
-  position: {
-    x: 40,
-    y: 20
-  },
-  velocity: {
-    x: 1,
-    y: 1
-  }
-}
-
-function keepInbound(shape, width, height) {
-  if (shape.position.x + 5 >= width) {
-    shape.position.x -= 1;
-    shape.velocity.x = -shape.velocity.x;
-  }
-
-  if (shape.position.x - 5 <= 0) {
-    shape.position.x += 1;
-    shape.velocity.x = -shape.velocity.x;
-  }
-  
-  if (shape.position.y + 5 >= height) {
-    shape.position.y -= 1;
-    shape.velocity.y = -shape.velocity.y;
-  }
-  
-  if (shape.position.y - 5 <= 0) {
-    shape.position.y += 1;
-    shape.velocity.y = -shape.velocity.y;
-  }
-
-  console.log(shape.position);
-}
-
-function draw() {
-  clearCanvas(canvas);
-
-  square.position.x += square.velocity.x;
-  square.position.y += square.velocity.y;
-  keepInbound(square, canvas.width, canvas.height);
-
-  console.log(square.position.x);
-
-  
-  
-  ctx.fillStyle = "rgb(0, 0, 0, 0.5)";
-  ctx.fillRect(square.position.x, square.position.y, 10, 10);
-
-  requestAnimationFrame(draw);
-}
-
-draw();
 
 /**
  * REAL MEAT OF THIS ALL
@@ -227,10 +189,122 @@ draw();
  * this is all of the really important stuff
  */
 
-function stepFunction(model: GeneticAlgorithmModel): GeneticAlgorithmModel {
-  let newModel: GeneticAlgorithmModel = structuredClone(model);
+function keepShapeInbounds(shape: ShapeOrganism, xMax: number, yMax: number, xMin: number = 0, yMin: number = 0): void {
 
+  // check top side
+  if (shape.position.y < yMin + shape.genes.radius) {
+    shape.position.y = yMin + shape.genes.radius;
+    shape.velocity.y = -shape.velocity.y;
+  }
+  
+  // check left side
+  if (shape.position.x < xMin + shape.genes.radius) {
+    shape.position.x = xMin + shape.genes.radius;
+    shape.velocity.x = -shape.velocity.x;
+  }
+  
+  // check bottom side
+  if (shape.position.y > yMax - shape.genes.radius) {
+    shape.position.y = yMax - shape.genes.radius;
+    shape.velocity.y = -shape.velocity.y;
+  }
 
+  // check right side
+  if (shape.position.x > xMax - shape.genes.radius) {
+    shape.position.x = xMax - shape.genes.radius;
+    shape.velocity.x = -shape.velocity.x;
+  }
 
-  return newModel;
+  return;
 }
+
+async function stepFunction(model: GeneticAlgorithmModel<ShapeOrganism>): Promise<GeneticAlgorithmModel<ShapeOrganism>> {
+
+  for (let i = 0; i < model.population.length; i++) {
+    model.population[i].position.x += model.population[i].velocity.x;
+    model.population[i].position.y += model.population[i].velocity.y;
+
+    keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
+  }
+
+  return;
+}
+
+let geneticAlgorithm: GeneticAlgorithm<ShapeOrganism> = new GeneticAlgorithm(
+  createOrganism,
+  stepFunction,
+  calculateFitness,
+  crossover,
+  mutate,
+  shouldTerminate,
+  shouldProgressGeneration,
+  POPULATION_SIZE,
+  false,
+  FRAME_DELAY
+);
+
+/**
+ * View logic is here baby!!!
+ */
+
+function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ShapeOrganism>) {
+  const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+  const OPACITY = 0.2;
+
+  clearCanvas(canvas);
+
+  for (const organism of model.population) {
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${organism.genes.color.red}, ${organism.genes.color.green}, ${organism.genes.color.blue}, ${OPACITY})`
+    ctx.arc(organism.position.x, organism.position.y, organism.genes.radius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+  }
+};
+
+function gameLoop(model: GeneticAlgorithmModel<ShapeOrganism>): void {
+  display(canvas, model);
+  requestAnimationFrame(() => {
+    gameLoop(geneticAlgorithm.model);
+  });
+}
+
+gameLoop(geneticAlgorithm.model);
+
+/**
+ * CONTROLS here!
+ */
+let playButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(playButton);
+playButton.innerText = "▶ play ";
+playButton.addEventListener("click", () => {
+  geneticAlgorithm.play();
+})
+
+let pauseButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(pauseButton);
+pauseButton.innerText = "⏸ pause";
+pauseButton.addEventListener("click", () => {
+  geneticAlgorithm.pause();
+});
+
+let resetButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(resetButton);
+resetButton.innerText = "⟲ reset";
+resetButton.addEventListener("click", () => {
+  geneticAlgorithm.reset();
+});
+
+let controls: HTMLDivElement = document.createElement("div");
+controls.appendChild(playButton);
+controls.appendChild(pauseButton);
+controls.appendChild(resetButton);
+controls.style.display = "flex";
+controls.style.flexDirection = "row";
+controls.style.alignItems = "flex-start";
+controls.style.justifyContent = "space-evenly";
+controls.style.width = "100%";
+
+view.appendChild(controls);
+view.appendChild(canvas);
+document.querySelector("#view").appendChild(view);

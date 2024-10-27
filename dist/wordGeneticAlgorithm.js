@@ -30,6 +30,8 @@ function crossover(parentA, parentB) {
             throw new Error("Crossover has created an organism that is a different species.");
         }
     }
+    parentA = null;
+    parentB = null;
     return offspring;
 }
 function calculateFitness(organism) {
@@ -53,6 +55,7 @@ function mutate(organism) {
     if (mutatedOrganism.genes.length != organism.genes.length) {
         throw new Error("Mutation has created an organism that is a different species.");
     }
+    organism = null;
     return mutatedOrganism;
 }
 function shouldTerminate(model) {
@@ -74,7 +77,6 @@ function stepFunction(model) {
     return;
 }
 let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, Config.POPULATION_SIZE);
-console.log(geneticAlgorithm);
 let environment = document.createElement("div");
 environment.style.display = "grid";
 environment.style.gridTemplateColumns = "1fr 1fr 1fr";

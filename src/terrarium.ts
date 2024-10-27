@@ -23,10 +23,10 @@ export interface Organism {
  * The "model" that represents the state of a genetic algorithm at any given 
  * moment.
  */
-export interface GeneticAlgorithmModel {
+export interface GeneticAlgorithmModel<TOrganism extends Organism> {
   populationSize: number;
   generation: number;
-  population: Organism[];
+  population: TOrganism[];
   frameCountSinceGenStart: number;
 }
 
@@ -35,14 +35,14 @@ export interface GeneticAlgorithmModel {
  * the flow of the genetic algorithm from start to finish, from frame to frame,
  * and from generation to generation.
  */
-export class GeneticAlgorithm {
+export class GeneticAlgorithm<TOrganism extends Organism> {
   /**
    * Progresses a genetic algorithm model to it's next frame.
    * 
    * @param model - the GeneticAlgorithmModel that the step function should
    * progress.
    */
-  private stepFunction: (model: GeneticAlgorithmModel) => void;
+  private stepFunction: (model: GeneticAlgorithmModel<TOrganism>) => void;
   /**
    * checks if the genetic algorithm should stop running
    * 
@@ -51,7 +51,7 @@ export class GeneticAlgorithm {
    * @returns a boolean value that represents a yes or no answer to "should 
    * this genetic algorithm terminate?". 
    */
-  private shouldTerminate: (model: GeneticAlgorithmModel) => boolean;
+  private shouldTerminate: (model: GeneticAlgorithmModel<TOrganism>) => boolean;
   /**
    * checks if the genetic algorithm should progress to the next generation
    * 
@@ -60,7 +60,7 @@ export class GeneticAlgorithm {
    * @returns a boolean value that represents a yes or no answer to "should 
    * this genetic algorithm progress to the next generation?".
    */
-  private shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean;
+  private shouldProgressGeneration: (model: GeneticAlgorithmModel<TOrganism>) => boolean;
   /**
    * this function is called to produce the next generation after a generation
    * ends.
@@ -69,14 +69,14 @@ export class GeneticAlgorithm {
    * 
    * @returns a GeneticAlgorithmModel that has the new generation.
    */
-  private produceNextGeneration: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel;
+  private produceNextGeneration: (model: GeneticAlgorithmModel<TOrganism>) => GeneticAlgorithmModel<TOrganism>;
   /**
    * used to create the firstGeneration and optionally, used in more places than
    * that (but that's up to user's discretion).
    * 
    * @returns a completely new Organism.
    */
-  private createOrganism: () => Organism;
+  private createOrganism: () => TOrganism;
   /**
    * calculates the fitness of a single organism.
    * 
@@ -84,7 +84,7 @@ export class GeneticAlgorithm {
    * 
    * @returns - the number value of the organism's fitness
    */
-  private calculateFitness: (organism: Organism) => number;
+  private calculateFitness: (organism: TOrganism) => number;
   /**
    * performs "reproduction" of two organisms, producing a single offspring
    * 
@@ -93,7 +93,7 @@ export class GeneticAlgorithm {
    * 
    * @returns the child organism
    */
-  private crossover: (parentA: Organism, parentB: Organism) => Organism;
+  private crossover: (parentA: TOrganism, parentB: TOrganism) => TOrganism;
   /**
    * mutates a single organism
    * 
@@ -101,12 +101,12 @@ export class GeneticAlgorithm {
    * 
    * @returns the mutated organism
    */
-  private mutate: (organism: Organism) => Organism;
+  private mutate: (organism: TOrganism) => TOrganism;
   
   /**
    * model - the GeneticAlgorithmModel that this object manages.
    */
-  model: GeneticAlgorithmModel;
+  model: GeneticAlgorithmModel<TOrganism>;
   /**
    * isRunning - represents the "running" state of the genetic algorithm at the 
    * moment.
@@ -116,6 +116,11 @@ export class GeneticAlgorithm {
    * debug - enables or disables logging.
    */
   private debug: boolean;
+
+  /**
+   * frameDelayMilliseconds - time in milliseconds between each "step"
+   */
+  private frameDelayMilliseconds: number;
 
   /**
    * 
@@ -140,18 +145,19 @@ export class GeneticAlgorithm {
    */
   constructor(
     // class methods
-    createOrganism: () => Organism,
-    stepFunction: (model: GeneticAlgorithmModel) => void,
-    calculateFitness: (organism: Organism) => number,
-    crossover: (parentA: Organism, parentB: Organism) => Organism,
-    mutate: (organism: Organism) => Organism,
-    shouldTerminate: (model: GeneticAlgorithmModel) => boolean,
-    shouldProgressGeneration: (model: GeneticAlgorithmModel) => boolean,
+    createOrganism: () => TOrganism,
+    stepFunction: (model: GeneticAlgorithmModel<TOrganism>) => void,
+    calculateFitness: (organism: TOrganism) => number,
+    crossover: (parentA: TOrganism, parentB: TOrganism) => TOrganism,
+    mutate: (organism: TOrganism) => TOrganism,
+    shouldTerminate: (model: GeneticAlgorithmModel<TOrganism>) => boolean,
+    shouldProgressGeneration: (model: GeneticAlgorithmModel<TOrganism>) => boolean,
     populationSize: number = 50,
     debug: boolean = false,
+    frameDelayMilliseconds: number = 0,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
-    produceNextGeneration?: (model: GeneticAlgorithmModel) => GeneticAlgorithmModel) {
+    produceNextGeneration?: (model: GeneticAlgorithmModel<TOrganism>) => GeneticAlgorithmModel<TOrganism>) {
 
     // initialize the model ****************************************************
     this.model = {
@@ -174,6 +180,7 @@ export class GeneticAlgorithm {
     // member variables ********************************************************
     this.debug = debug;
     this.isRunning = false;
+    this.frameDelayMilliseconds = frameDelayMilliseconds;
     
     // generate new population *************************************************
     this.initializePopulation();
@@ -195,7 +202,10 @@ export class GeneticAlgorithm {
    * 
    * @returns nothing
    */
-  private step(): void {
+  private async step(): Promise<void> {
+    this.log("model right now:");
+    this.log(this.model);
+
     if (this.shouldTerminate(this.model)) {
       // the genetic algorithm is completely finished, so let's stop
       this.isRunning = false;
@@ -222,6 +232,7 @@ export class GeneticAlgorithm {
       this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
       this.model.frameCountSinceGenStart += 1;
       this.stepFunction(this.model);
+      await new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
       this.next();
     }
   }
@@ -310,30 +321,29 @@ export class GeneticAlgorithm {
        * @param model genetic algorithm model to modify
        * @returns a genetic algorithm model with a new generation
        */
-      standard: (model: GeneticAlgorithmModel): GeneticAlgorithmModel => {
-        let newModel: GeneticAlgorithmModel = structuredClone(model);
-        newModel.generation++;
+      standard: (model: GeneticAlgorithmModel<TOrganism>): GeneticAlgorithmModel<TOrganism> => {
+        model.generation++;
   
         // find two best parents
-        const sortedPopulation: Organism[] = newModel.population.sort((a, b) => {
+        const sortedPopulation: TOrganism[] = model.population.sort((a, b) => {
           return this.calculateFitness(b) - this.calculateFitness(a);
         });
   
-        const parentA: Organism = sortedPopulation[0];
-        const parentB: Organism = sortedPopulation[1];
+        const parentA: TOrganism = sortedPopulation[0];
+        const parentB: TOrganism = sortedPopulation[1];
   
         // perform crossover
-        newModel.population = [];
-        for (let i: number = 0; i < newModel.populationSize; i++) {
-          newModel.population.push(this.crossover(parentA, parentB));
+        model.population = [];
+        for (let i: number = 0; i < model.populationSize; i++) {
+          model.population.push(this.crossover(parentA, parentB));
         }
   
         // mutation
-        for (let i: number = 0; i < newModel.populationSize; i++) {
-          newModel.population[i] = this.mutate(newModel.population[i]);
+        for (let i: number = 0; i < model.populationSize; i++) {
+          model.population[i] = this.mutate(model.population[i]);
         }
   
-        return newModel;
+        return model;
       }
     }
   }
