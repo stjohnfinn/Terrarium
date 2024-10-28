@@ -10,8 +10,8 @@ const CANVAS_WIDTH: number = 250;
 // Gene bounds
 const MIN_RADIUS: number = 4;
 const MAX_RADIUS: number = 20;
-const MIN_DAMAGE: number = 1;
-const MAX_DAMAGE: number = 4;
+const MIN_DAMAGE: number = 4;
+const MAX_DAMAGE: number = 10;
 const MIN_ARMOR: number = 2;
 const MAX_ARMOR: number = 10;
 const MIN_COLOR: number = 0;
@@ -103,6 +103,10 @@ function calculateFitness(organism: ShapeOrganism): number {
   let fitness: number = 0;
 
   fitness += organism.kills;
+
+  if (organism.isAlive) {
+    fitness = fitness * 2;
+  }
 
   return fitness;
 }

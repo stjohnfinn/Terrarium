@@ -16,8 +16,8 @@ const CANVAS_WIDTH = 250;
 // Gene bounds
 const MIN_RADIUS = 4;
 const MAX_RADIUS = 20;
-const MIN_DAMAGE = 1;
-const MAX_DAMAGE = 4;
+const MIN_DAMAGE = 4;
+const MAX_DAMAGE = 10;
 const MIN_ARMOR = 2;
 const MAX_ARMOR = 10;
 const MIN_COLOR = 0;
@@ -75,6 +75,9 @@ function createOrganism() {
 function calculateFitness(organism) {
     let fitness = 0;
     fitness += organism.kills;
+    if (organism.isAlive) {
+        fitness = fitness * 2;
+    }
     return fitness;
 }
 function crossover(parentA, parentB) {
