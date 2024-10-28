@@ -255,7 +255,7 @@ let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calcul
  */
 function display(canvas, model) {
     const ctx = canvas.getContext("2d");
-    const OPACITY = 0.2;
+    const OPACITY = 0.5;
     clearCanvas(canvas);
     for (const organism of model.population) {
         if (organism.isAlive) {
@@ -268,10 +268,10 @@ function display(canvas, model) {
             ctx.font = "8px serif";
             ctx.fillStyle = `rgb(0, 0, 0)`;
             ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 4, organism.position.y + organism.genes.radius + 10);
-            // ctx.fillStyle = `rgb(255, 0, 0)`;
-            // ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
-            // ctx.fillStyle = `rgb(0, 0, 255)`;
-            // ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
+            ctx.fillStyle = `rgb(255, 0, 0)`;
+            ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
+            ctx.fillStyle = `rgb(0, 0, 255)`;
+            ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
         }
     }
 }
