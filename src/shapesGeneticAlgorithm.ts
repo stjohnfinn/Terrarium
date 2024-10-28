@@ -318,7 +318,7 @@ async function stepFunction(model: GeneticAlgorithmModel<ShapeOrganism>): Promis
     keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // regen some health based on blue content
-    const maxRegenCoeff: number = 0.0005;
+    const maxRegenCoeff: number = 0.00005;
     const regenCoeff: number = 1 + (model.population[i].genes.color.blue / MAX_COLOR) * maxRegenCoeff;
     model.population[i].health = Math.min(15, model.population[i].health * regenCoeff);
   }

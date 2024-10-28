@@ -242,7 +242,7 @@ function stepFunction(model) {
             }
             keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
             // regen some health based on blue content
-            const maxRegenCoeff = 0.0005;
+            const maxRegenCoeff = 0.00005;
             const regenCoeff = 1 + (model.population[i].genes.color.blue / MAX_COLOR) * maxRegenCoeff;
             model.population[i].health = Math.min(15, model.population[i].health * regenCoeff);
         }
