@@ -207,8 +207,13 @@ function fixCollision(shapeA, shapeB) {
     return;
 }
 function applyDamage(attacker, victim) {
-    victim.health -= attacker.genes.damage / victim.genes.armor;
-    victim;
+    // deal more dmg if high red content
+    const maxDamageCoeffOffset = 0.75;
+    const damageCoeff = 1 + (attacker.genes.color.red / MAX_COLOR) * maxDamageCoeffOffset;
+    // more armor if high blue content
+    const maxArmorCoeffOffset = 0.75;
+    const armorCoeff = 1 + (victim.genes.color.blue / MAX_COLOR) * maxArmorCoeffOffset;
+    victim.health -= (damageCoeff * attacker.genes.damage) / (armorCoeff * victim.genes.armor);
 }
 function stepFunction(model) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -232,6 +237,10 @@ function stepFunction(model) {
                 fixCollision(model.population[i], model.population[j]);
             }
             keepShapeInbounds(model.population[i], CANVAS_WIDTH, CANVAS_HEIGHT);
+            // regen some health based on blue content
+            const maxRegenCoeff = 0.0005;
+            const regenCoeff = 1 + (model.population[i].genes.color.blue / MAX_COLOR) * maxRegenCoeff;
+            model.population[i].health = Math.min(15, model.population[i].health * regenCoeff);
         }
         return;
     });
@@ -254,11 +263,11 @@ function display(canvas, model) {
             // draw the health
             ctx.font = "8px serif";
             ctx.fillStyle = `rgb(0, 0, 0)`;
-            ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 8, organism.position.y + organism.genes.radius + 10);
-            ctx.fillStyle = `rgb(255, 0, 0)`;
-            ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
-            ctx.fillStyle = `rgb(0, 0, 255)`;
-            ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
+            ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 4, organism.position.y + organism.genes.radius + 10);
+            // ctx.fillStyle = `rgb(255, 0, 0)`;
+            // ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
+            // ctx.fillStyle = `rgb(0, 0, 255)`;
+            // ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
         }
     }
 }
