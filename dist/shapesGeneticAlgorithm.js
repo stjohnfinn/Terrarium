@@ -214,6 +214,10 @@ function applyDamage(attacker, victim) {
     const maxArmorCoeffOffset = 0.75;
     const armorCoeff = 1 + (victim.genes.color.blue / MAX_COLOR) * maxArmorCoeffOffset;
     victim.health -= (damageCoeff * attacker.genes.damage) / (armorCoeff * victim.genes.armor);
+    if (victim.health === 0) {
+        victim.isAlive = false;
+        attacker.kills += 1;
+    }
 }
 function stepFunction(model) {
     return __awaiter(this, void 0, void 0, function* () {

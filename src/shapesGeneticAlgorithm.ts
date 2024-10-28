@@ -286,6 +286,10 @@ function applyDamage(attacker: ShapeOrganism, victim: ShapeOrganism): void {
   const armorCoeff: number = 1 + (victim.genes.color.blue / MAX_COLOR) * maxArmorCoeffOffset;
 
   victim.health -= (damageCoeff * attacker.genes.damage) / ( armorCoeff * victim.genes.armor);
+  if (victim.health === 0) {
+    victim.isAlive = false;
+    attacker.kills += 1;
+  }
 }
 
 async function stepFunction(model: GeneticAlgorithmModel<ShapeOrganism>): Promise<GeneticAlgorithmModel<ShapeOrganism>> {
