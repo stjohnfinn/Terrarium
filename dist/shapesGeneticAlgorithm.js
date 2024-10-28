@@ -208,10 +208,10 @@ function fixCollision(shapeA, shapeB) {
 }
 function applyDamage(attacker, victim) {
     // deal more dmg if high red content
-    const maxDamageCoeffOffset = 0.75;
+    const maxDamageCoeffOffset = 1.5;
     const damageCoeff = 1 + (attacker.genes.color.red / MAX_COLOR) * maxDamageCoeffOffset;
     // more armor if high blue content
-    const maxArmorCoeffOffset = 0.75;
+    const maxArmorCoeffOffset = 1.5;
     const armorCoeff = 1 + (victim.genes.color.blue / MAX_COLOR) * maxArmorCoeffOffset;
     victim.health -= (damageCoeff * attacker.genes.damage) / (armorCoeff * victim.genes.armor);
     if (victim.health === 0) {
