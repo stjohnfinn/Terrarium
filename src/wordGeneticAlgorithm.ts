@@ -38,8 +38,6 @@ function crossover(parentA: WordOrganism, parentB: WordOrganism): WordOrganism {
     }
 
     if (offspring.genes.length != parentA.genes.length) {
-      console.log(offspring);
-      console.log(parentA);
       throw new Error("Crossover has created an organism that is a different species.");
     }
   }
@@ -98,8 +96,6 @@ function shouldTerminate(model: GeneticAlgorithmModel<WordOrganism>): boolean {
 }
 
 function shouldProgressGeneration(model: GeneticAlgorithmModel<WordOrganism>): boolean {
-  console.log("New generation!");
-
   return true;
 }
 

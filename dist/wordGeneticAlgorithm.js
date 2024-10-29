@@ -25,8 +25,6 @@ function crossover(parentA, parentB) {
             offspring.genes = offspring.genes.substring(0, i) + parentB.genes[i] + offspring.genes.substring(i + 1);
         }
         if (offspring.genes.length != parentA.genes.length) {
-            console.log(offspring);
-            console.log(parentA);
             throw new Error("Crossover has created an organism that is a different species.");
         }
     }
@@ -70,7 +68,6 @@ function shouldTerminate(model) {
     return targetStringFound;
 }
 function shouldProgressGeneration(model) {
-    console.log("New generation!");
     return true;
 }
 function stepFunction(model) {
