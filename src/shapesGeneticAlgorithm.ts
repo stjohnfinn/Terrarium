@@ -10,12 +10,16 @@ const CANVAS_WIDTH: number = 250;
 // Gene bounds
 const MIN_RADIUS: number = 4;
 const MAX_RADIUS: number = 20;
+const RADIUS_MUTATION_MARGIN: number = 2;
 const MIN_DAMAGE: number = 4;
 const MAX_DAMAGE: number = 10;
+const DAMAGE_MUTATION_MARGIN: number = 2;
 const MIN_ARMOR: number = 2;
 const MAX_ARMOR: number = 10;
+const ARMOR_MUTATION_MARGIN: number = 3;
 const MIN_COLOR: number = 0;
 const MAX_COLOR: number = 255;
+const COLOR_MUTATION_MARGIN: number = 20;
 const BASE_HEALTH: number = 15;
 const MIN_POS: Vector2d = {
   x: 20,
@@ -116,7 +120,7 @@ function crossover(parentA: ShapeOrganism, parentB: ShapeOrganism): ShapeOrganis
 
   offspring.genes.radius = randomizeWithMargin(
     getAverage(parentA.genes.radius, parentB.genes.radius),
-    3
+    RADIUS_MUTATION_MARGIN
   );
 
   offspring.genes.damage = getRandomInt(parentA.genes.damage, parentB.genes.damage);
@@ -124,9 +128,9 @@ function crossover(parentA: ShapeOrganism, parentB: ShapeOrganism): ShapeOrganis
   offspring.genes.armor = getRandomInt(parentA.genes.armor, parentB.genes.armor);
 
   offspring.genes.color = {
-    red: randomizeWithMargin(getRandomInt(parentA.genes.color.red, parentA.genes.color.red), 30),
-    green: randomizeWithMargin(getRandomInt(parentA.genes.color.green, parentA.genes.color.green), 30),
-    blue: randomizeWithMargin(getRandomInt(parentA.genes.color.blue, parentA.genes.color.blue), 30),
+    red: randomizeWithMargin(getRandomInt(parentA.genes.color.red, parentA.genes.color.red), COLOR_MUTATION_MARGIN),
+    green: randomizeWithMargin(getRandomInt(parentA.genes.color.green, parentA.genes.color.green), COLOR_MUTATION_MARGIN),
+    blue: randomizeWithMargin(getRandomInt(parentA.genes.color.blue, parentA.genes.color.blue), COLOR_MUTATION_MARGIN),
   }
 
   return offspring;
@@ -137,24 +141,24 @@ function mutate(organism: ShapeOrganism): ShapeOrganism {
 
   // height first
   if (Math.random() < MUTATION_CHANCE) {
-    organism.genes.radius = clamp(randomizeWithMargin(organism.genes.radius, 3), 4, 20);
+    organism.genes.radius = clamp(randomizeWithMargin(organism.genes.radius, RADIUS_MUTATION_MARGIN), MIN_RADIUS, MAX_RADIUS);
   }
 
   // damage
   if (Math.random() < MUTATION_CHANCE) {
-    organism.genes.damage = clamp(randomizeWithMargin(organism.genes.damage, 1), 1, 4);
+    organism.genes.damage = clamp(randomizeWithMargin(organism.genes.damage, DAMAGE_MUTATION_MARGIN), MIN_DAMAGE, MAX_DAMAGE);
   }
 
   // armor
   if (Math.random() < MUTATION_CHANCE) {
-    organism.genes.armor = clamp(randomizeWithMargin(organism.genes.damage, 3), 1, 10);
+    organism.genes.armor = clamp(randomizeWithMargin(organism.genes.armor, ARMOR_MUTATION_MARGIN), MIN_ARMOR, MAX_ARMOR);
   }
 
   // color
   organism.genes.color = {
-    red: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.red,
-    green: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.green,
-    blue: Math.random() < MUTATION_CHANCE ? getRandomInt(0, 255) : organism.genes.color.blue
+    red: Math.random() < MUTATION_CHANCE ? getRandomInt(MIN_COLOR, MAX_COLOR) : organism.genes.color.red,
+    green: Math.random() < MUTATION_CHANCE ? getRandomInt(MIN_COLOR, MAX_COLOR) : organism.genes.color.green,
+    blue: Math.random() < MUTATION_CHANCE ? getRandomInt(MIN_COLOR, MAX_COLOR) : organism.genes.color.blue
   };
 
   return organism;
@@ -364,11 +368,11 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ShapeOr
       // draw the health
       ctx.font = "8px serif";
       ctx.fillStyle = `rgb(0, 0, 0)`;
-      ctx.fillText(String(Math.ceil(organism.health)), organism.position.x - 4, organism.position.y + organism.genes.radius + 10);
+      ctx.fillText(`♥️${Math.ceil(organism.health)}`, organism.position.x - 4, organism.position.y - (organism.genes.radius + 4) );
       ctx.fillStyle = `rgb(255, 0, 0)`;
-      ctx.fillText(String(Math.ceil(organism.genes.damage)), organism.position.x + 4, organism.position.y + organism.genes.radius + 10);
+      ctx.fillText(`✸${Math.ceil(organism.genes.damage)}`, organism.position.x - 12, organism.position.y + organism.genes.radius + 10);
       ctx.fillStyle = `rgb(0, 0, 255)`;
-      ctx.fillText(String(Math.ceil(organism.genes.armor)), organism.position.x + 10, organism.position.y + organism.genes.radius + 10);
+      ctx.fillText(`🛡${Math.ceil(organism.genes.armor)}`, organism.position.x + 8, organism.position.y + organism.genes.radius + 10);
     }
   }
 };
