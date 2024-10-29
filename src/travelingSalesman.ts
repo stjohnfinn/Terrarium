@@ -9,6 +9,7 @@ const CANVAS_WIDTH: number = 250;
 
 const CITIES_COUNT: number = 40;
 const CITY_PLACEMENT_PADDING: number = 10;
+const MUTATION_CHANCE: number = 0.02;
 
 type Location = {
   longitude: number,
@@ -61,7 +62,8 @@ class SalesmanRouteOrganism implements Organism {
   mutationChance: number;
   genes: Location[];
 
-  constructor(cities: Location[]) {
+  constructor(cities: Location[], mutation_chance: number) {
+    this.mutationChance = mutation_chance;
     // select N random cities, where N is a random number between 1 + 1 + 1 and CITIES_COUNT
     this.genes = [];
 
@@ -75,7 +77,7 @@ class SalesmanRouteOrganism implements Organism {
 }
 
 function createOrganism(): SalesmanRouteOrganism {
-  return new SalesmanRouteOrganism(structuredClone(cities))
+  return new SalesmanRouteOrganism(structuredClone(cities), MUTATION_CHANCE);
 }
 
 //##############################################################################
@@ -84,14 +86,97 @@ function createOrganism(): SalesmanRouteOrganism {
 
 function calculateFitness(salesman: SalesmanRouteOrganism): number {
   let fitness: number = 0;
-
+  
   let currentCity: Location = HOME_CITY;
   for (let i = 0; i < salesman.genes.length; i++) {
-    // fitness += 
+    fitness += distance(currentCity, salesman.genes[i]);
+    currentCity = salesman.genes[i];
   }
   fitness += distance(currentCity, HOME_CITY);
-
+  
   return fitness;
 }
 
-console.log(createOrganism());
+//##############################################################################
+// crossover
+//##############################################################################
+
+function crossover(parentA: SalesmanRouteOrganism, parentB: SalesmanRouteOrganism): SalesmanRouteOrganism {
+  return parentA;
+}
+
+//##############################################################################
+// mutation
+//##############################################################################
+
+function mutation(salesman: SalesmanRouteOrganism): SalesmanRouteOrganism {
+  
+  for (let i = 0; i < CITIES_COUNT; i++) {
+    const randomValue: number = Math.random();
+    
+    if (randomValue < salesman.mutationChance) {
+      const randomSwapIndexA: number = Math.floor(Math.random() * CITIES_COUNT);
+      const randomSwapIndexB: number = Math.floor(Math.random() * CITIES_COUNT);
+      
+      [salesman.genes[randomSwapIndexA], salesman.genes[randomSwapIndexB]] = [salesman.genes[randomSwapIndexB], salesman.genes[randomSwapIndexA]];
+    }
+  }
+  
+  return salesman;
+}
+
+//##############################################################################
+// GA termination
+//##############################################################################
+
+function shouldTerminate(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): boolean {
+  return false;
+}
+
+//##############################################################################
+// generation termination condition
+//##############################################################################
+
+function shouldProgressGeneration(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): boolean {
+  return true;
+}
+
+//##############################################################################
+// step function
+//##############################################################################
+
+function stepFunction(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): void {
+  return;
+}
+
+//##############################################################################
+// step function
+//##############################################################################
+
+let displayDiv: HTMLDivElement = document.createElement("div");
+displayDiv.style.display = "flex";
+displayDiv.style.alignItems = "center";
+displayDiv.style.flexDirection = "column";
+displayDiv.style.gap = "1rem";
+displayDiv.style.justifyContent = "space-evenly";
+
+let canvas: HTMLCanvasElement = document.createElement("canvas");
+canvas.height = CANVAS_HEIGHT;
+canvas.width = CANVAS_WIDTH;
+canvas.style.border = "1px solid white";
+canvas.style.background = "black";
+
+function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
+  cv.getContext("2d").fillStyle = color;
+  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}
+
+displayDiv.appendChild(canvas);
+
+document.querySelector("#view").appendChild(displayDiv);
+
+let canvasCtx: CanvasRenderingContext2D = canvas.getContext("2d");
+for (const city of cities) {
+  canvasCtx.fillStyle = "rgb(255, 255, 255)";
+  canvasCtx.fillRect(city.longitude, city.latitude, 1, 1);
+}

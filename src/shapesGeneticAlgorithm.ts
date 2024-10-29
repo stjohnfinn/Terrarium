@@ -420,6 +420,6 @@ controls.style.alignItems = "flex-start";
 controls.style.justifyContent = "space-evenly";
 controls.style.width = "100%";
 
-view.appendChild(controls);
 view.appendChild(canvas);
+view.appendChild(controls);
 document.querySelector("#view").appendChild(view);
