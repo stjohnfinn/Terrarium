@@ -11,6 +11,12 @@ const CITIES_COUNT: number = 40;
 const CITY_PLACEMENT_PADDING: number = 10;
 const MUTATION_CHANCE: number = 0.02;
 
+const HOME_CITY_INDEX = -1;
+
+const FRAME_DELAY: number = 500;
+const POPULATION_SIZE: number = 25;
+const DEBUG: boolean = true;
+
 type Location = {
   longitude: number,
   latitude: number
@@ -61,10 +67,12 @@ const HOME_CITY: Location = cities.pop();
 class SalesmanRouteOrganism implements Organism {
   mutationChance: number;
   genes: Location[];
+  currentCityIndex: number;
+  previousCity: Location;
+  isFinished: boolean;
 
   constructor(cities: Location[], mutation_chance: number) {
     this.mutationChance = mutation_chance;
-    // select N random cities, where N is a random number between 1 + 1 + 1 and CITIES_COUNT
     this.genes = [];
 
     let tempCitiesCopy: Location[] = [...cities];
@@ -73,6 +81,10 @@ class SalesmanRouteOrganism implements Organism {
 
       this.genes.push(tempCitiesCopy.splice(randomIndex, 1)[0]);
     }
+
+    this.currentCityIndex = HOME_CITY_INDEX;
+    this.previousCity = HOME_CITY;
+    this.isFinished = false;
   }
 }
 
@@ -109,7 +121,7 @@ function crossover(parentA: SalesmanRouteOrganism, parentB: SalesmanRouteOrganis
 // mutation
 //##############################################################################
 
-function mutation(salesman: SalesmanRouteOrganism): SalesmanRouteOrganism {
+function mutate(salesman: SalesmanRouteOrganism): SalesmanRouteOrganism {
   
   for (let i = 0; i < CITIES_COUNT; i++) {
     const randomValue: number = Math.random();
@@ -138,7 +150,16 @@ function shouldTerminate(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): b
 //##############################################################################
 
 function shouldProgressGeneration(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): boolean {
-  return true;
+  // progress generation if all salesmen have finished their route
+  let anyUnfinishedRoutes: boolean = false;
+
+  for (const salesman of model.population) {
+    if (!salesman.isFinished) {
+      anyUnfinishedRoutes = true;
+    }
+  }
+
+  return anyUnfinishedRoutes;
 }
 
 //##############################################################################
@@ -146,12 +167,55 @@ function shouldProgressGeneration(model: GeneticAlgorithmModel<SalesmanRouteOrga
 //##############################################################################
 
 function stepFunction(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): void {
+  
+  for (let i: number = 0; i < model.population.length; i++) {
+    let salesman: SalesmanRouteOrganism = model.population[i];
+    
+    if (salesman.currentCityIndex >= salesman.genes.length) {
+      salesman.isFinished = true;
+    }
+
+    if (salesman.isFinished) {
+      continue;
+    }
+
+    if (salesman.currentCityIndex == 0) {
+      salesman.previousCity = HOME_CITY;
+    } else {
+      salesman.previousCity = salesman.genes[salesman.currentCityIndex - 1];
+    }
+    
+    salesman.currentCityIndex += 1;
+  }
+
   return;
 }
 
 //##############################################################################
-// step function
+// initialize the genetic algorithm
 //##############################################################################
+
+let geneticAlgorithm = new GeneticAlgorithm(
+  createOrganism,
+  stepFunction,
+  calculateFitness,
+  crossover,
+  mutate,
+  shouldTerminate,
+  shouldProgressGeneration,
+  POPULATION_SIZE,
+  DEBUG,
+  FRAME_DELAY
+)
+
+//##############################################################################
+// display logic?
+//##############################################################################
+
+function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
+  cv.getContext("2d").fillStyle = color;
+  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}
 
 let displayDiv: HTMLDivElement = document.createElement("div");
 displayDiv.style.display = "flex";
@@ -166,17 +230,72 @@ canvas.width = CANVAS_WIDTH;
 canvas.style.border = "1px solid white";
 canvas.style.background = "black";
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
+let playButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(playButton);
+playButton.innerText = "▶ play ";
+playButton.addEventListener("click", () => {
+  geneticAlgorithm.play();
+})
+
+let pauseButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(pauseButton);
+pauseButton.innerText = "⏸ pause";
+pauseButton.addEventListener("click", () => {
+  geneticAlgorithm.pause();
+});
+
+let resetButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(resetButton);
+resetButton.innerText = "⟲ reset";
+resetButton.addEventListener("click", () => {
+  geneticAlgorithm.reset();
+});
+
+let controls: HTMLDivElement = document.createElement("div");
+controls.appendChild(playButton);
+controls.appendChild(pauseButton);
+controls.appendChild(resetButton);
+controls.style.display = "flex";
+controls.style.flexDirection = "row";
+controls.style.alignItems = "flex-start";
+controls.style.justifyContent = "space-evenly";
+controls.style.width = "100%";
 
 displayDiv.appendChild(canvas);
+displayDiv.appendChild(controls);
 
 document.querySelector("#view").appendChild(displayDiv);
 
-let canvasCtx: CanvasRenderingContext2D = canvas.getContext("2d");
-for (const city of cities) {
-  canvasCtx.fillStyle = "rgb(255, 255, 255)";
-  canvasCtx.fillRect(city.longitude, city.latitude, 1, 1);
+function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<SalesmanRouteOrganism>) {
+  const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+  clearCanvas(canvas, "rgb(0, 0, 0)");
+
+  for (const city of cities) {
+    ctx.fillStyle = "rgb(255, 255, 255)";
+    ctx.fillRect(city.longitude, city.latitude, 1, 1);
+  }
+
+  for (const salesman of model.population) {
+    ctx.fillStyle = "rgb(0, 255, 0)";
+
+    if (salesman.currentCityIndex == HOME_CITY_INDEX) {
+      ctx.fillRect(HOME_CITY.longitude, HOME_CITY.latitude, 1, 1);
+      continue;
+    }
+
+    if (salesman.isFinished) {
+      ctx.fillRect(HOME_CITY.longitude, HOME_CITY.latitude, 1, 1);
+    }
+
+    ctx.fillRect(salesman.genes[salesman.currentCityIndex].longitude, salesman.genes[salesman.currentCityIndex].latitude, 1, 1);
+  }
+};
+
+function gameLoop(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): void {
+  display(canvas, model);
+  requestAnimationFrame(() => {
+    gameLoop(geneticAlgorithm.model);
+  });
 }
+
+gameLoop(geneticAlgorithm.model);
