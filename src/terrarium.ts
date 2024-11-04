@@ -206,6 +206,15 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
     this.log("model right now:");
     this.log(this.model);
 
+    if (this.isRunning) {
+      this.log("progressing to the next frame.");
+      this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
+      this.model.frameCountSinceGenStart += 1;
+      this.stepFunction(this.model);
+      await new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
+      this.next();
+    }
+
     if (this.shouldTerminate(this.model)) {
       // the genetic algorithm is completely finished, so let's stop
       this.isRunning = false;
@@ -224,16 +233,6 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
       this.log("progressing to the next generation.");
       this.model.frameCountSinceGenStart = 0;
       this.model = this.produceNextGeneration(this.model);
-    }
-
-    // we're still running the genetic algorithm, so go to the next frame
-    if (this.isRunning) {
-      this.log("progressing to the next frame.");
-      this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
-      this.model.frameCountSinceGenStart += 1;
-      this.stepFunction(this.model);
-      await new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
-      this.next();
     }
   }
 
@@ -261,7 +260,7 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
    * so that there is a "reset" function.
    */
   private initializePopulation(): void {
-    this.log("initializing the population.")
+    this.log("initializing the population.");
     this.model.population = [];
     for (let i = 0; i < this.model.populationSize; i++) {
       this.model.population.push(this.createOrganism());

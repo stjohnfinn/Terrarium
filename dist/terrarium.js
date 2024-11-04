@@ -118,6 +118,14 @@ export class GeneticAlgorithm {
         return __awaiter(this, void 0, void 0, function* () {
             this.log("model right now:");
             this.log(this.model);
+            if (this.isRunning) {
+                this.log("progressing to the next frame.");
+                this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
+                this.model.frameCountSinceGenStart += 1;
+                this.stepFunction(this.model);
+                yield new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
+                this.next();
+            }
             if (this.shouldTerminate(this.model)) {
                 // the genetic algorithm is completely finished, so let's stop
                 this.isRunning = false;
@@ -134,15 +142,6 @@ export class GeneticAlgorithm {
                 this.log("progressing to the next generation.");
                 this.model.frameCountSinceGenStart = 0;
                 this.model = this.produceNextGeneration(this.model);
-            }
-            // we're still running the genetic algorithm, so go to the next frame
-            if (this.isRunning) {
-                this.log("progressing to the next frame.");
-                this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
-                this.model.frameCountSinceGenStart += 1;
-                this.stepFunction(this.model);
-                yield new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
-                this.next();
             }
         });
     }

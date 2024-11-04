@@ -7,19 +7,42 @@ import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.j
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
 
-const CITIES_COUNT: number = 40;
-const CITY_PLACEMENT_PADDING: number = 10;
-const MUTATION_CHANCE: number = 0.02;
+const CITIES_COUNT: number = 10;
+const CITY_PLACEMENT_PADDING: number = 30;
+const MUTATION_CHANCE: number = 0.05;
 
-const HOME_CITY_INDEX = -1;
-
-const FRAME_DELAY: number = 500;
-const POPULATION_SIZE: number = 25;
-const DEBUG: boolean = true;
+const FRAME_DELAY: number = 200;
+const POPULATION_SIZE: number = 20;
+const DEBUG: boolean = false;
 
 type Location = {
   longitude: number,
   latitude: number
+}
+
+function calculateTotalCoords(routeCities: Location[]): Location {
+  let total: Location = {
+    longitude: 0,
+    latitude: 0
+  };
+  
+  for (const city of routeCities) {
+    total.longitude += city.longitude;
+    total.latitude += city.latitude;
+  }
+
+  return total;
+}
+
+function validateRoute(route: Location[], startingCity: Location, routeCities: Location[]) {
+  const staticTotalCoords: Location = calculateTotalCoords([startingCity, ...routeCities, startingCity]);
+  const sampleTotalCoords: Location = calculateTotalCoords(route);
+
+  const isValid: boolean = staticTotalCoords.longitude == sampleTotalCoords.longitude && staticTotalCoords.latitude == sampleTotalCoords.latitude;
+
+  if (!isValid) {
+    throw new Error("invalid route!");
+  }
 }
 
 function distance(start: Location, end: Location): number {
@@ -33,32 +56,29 @@ function generateCity(): Location {
   };
 }
 
-function findDuplicate(cities: Location[]): number {
-  const seen = new Set();
-  for (let i = 0; i < cities.length; i++) {
-    if (seen.has(cities[i])) {
-      return i;
-    }
-    seen.add(cities[i]);
+function generateCitySet(num_cities: number): Location[] {
+  if (num_cities < 0) {
+    throw new Error("Number of cities must be non-negative.");
   }
-  return -1;
+
+  const cities: Location[] = [];
+
+  while (cities.length < num_cities) {
+    const newCity = generateCity();
+  
+    const isDuplicate = cities.some(existingCity => newCity === existingCity);
+  
+    if (!isDuplicate) {
+      cities.push(newCity);
+    }
+  }
+
+  return cities;
 }
 
-let cities = [];
+const ROUTE_CITIES = generateCitySet(CITIES_COUNT);
 
-// add one so that we can .pop() the home city off the top
-for (let i = 0; i < CITIES_COUNT + 1; i++) {
-  cities.push(generateCity());
-}
-
-// remove duplicates
-let duplicateIndex: number = findDuplicate(cities);
-while (duplicateIndex > -1) {
-  cities[duplicateIndex] = generateCity();
-  duplicateIndex = findDuplicate(cities);
-}
-
-const HOME_CITY: Location = cities.pop();
+const HOME_CITY: Location = ROUTE_CITIES.pop();
 
 //##############################################################################
 // createOrganism
@@ -68,28 +88,30 @@ class SalesmanRouteOrganism implements Organism {
   mutationChance: number;
   genes: Location[];
   currentCityIndex: number;
-  previousCity: Location;
   isFinished: boolean;
 
   constructor(cities: Location[], mutation_chance: number) {
     this.mutationChance = mutation_chance;
-    this.genes = [];
+    
+    this.genes = [HOME_CITY];
 
-    let tempCitiesCopy: Location[] = [...cities];
-    while (tempCitiesCopy.length > 0) {
-      const randomIndex: number = Math.floor(Math.random() * tempCitiesCopy.length);
+    while (cities.length > 0) {
+      const randomIndex: number = Math.floor(Math.random() * cities.length);
 
-      this.genes.push(tempCitiesCopy.splice(randomIndex, 1)[0]);
+      this.genes.push(cities.splice(randomIndex, 1)[0]);
     }
 
-    this.currentCityIndex = HOME_CITY_INDEX;
-    this.previousCity = HOME_CITY;
+    this.genes.push(HOME_CITY);
+
+    this.currentCityIndex = 0;
     this.isFinished = false;
+
+    validateRoute(this.genes, HOME_CITY, ROUTE_CITIES);
   }
 }
 
 function createOrganism(): SalesmanRouteOrganism {
-  return new SalesmanRouteOrganism(structuredClone(cities), MUTATION_CHANCE);
+  return new SalesmanRouteOrganism(structuredClone(ROUTE_CITIES), MUTATION_CHANCE);
 }
 
 //##############################################################################
@@ -106,7 +128,7 @@ function calculateFitness(salesman: SalesmanRouteOrganism): number {
   }
   fitness += distance(currentCity, HOME_CITY);
   
-  return fitness;
+  return -fitness;
 }
 
 //##############################################################################
@@ -114,7 +136,13 @@ function calculateFitness(salesman: SalesmanRouteOrganism): number {
 //##############################################################################
 
 function crossover(parentA: SalesmanRouteOrganism, parentB: SalesmanRouteOrganism): SalesmanRouteOrganism {
-  return parentA;
+  const P_parentA: number = 1 - calculateFitness(parentA) / calculateFitness(parentA) + calculateFitness(parentB);
+  let offspring: SalesmanRouteOrganism = createOrganism();
+  offspring.genes = Math.random() > P_parentA ? structuredClone(parentA).genes : structuredClone(parentB).genes
+
+  validateRoute(offspring.genes, HOME_CITY, ROUTE_CITIES);
+
+  return offspring;
 }
 
 //##############################################################################
@@ -132,8 +160,10 @@ function mutate(salesman: SalesmanRouteOrganism): SalesmanRouteOrganism {
       
       [salesman.genes[randomSwapIndexA], salesman.genes[randomSwapIndexB]] = [salesman.genes[randomSwapIndexB], salesman.genes[randomSwapIndexA]];
     }
+
+    validateRoute(salesman.genes, HOME_CITY, ROUTE_CITIES);
   }
-  
+
   return salesman;
 }
 
@@ -150,16 +180,7 @@ function shouldTerminate(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): b
 //##############################################################################
 
 function shouldProgressGeneration(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): boolean {
-  // progress generation if all salesmen have finished their route
-  let anyUnfinishedRoutes: boolean = false;
-
-  for (const salesman of model.population) {
-    if (!salesman.isFinished) {
-      anyUnfinishedRoutes = true;
-    }
-  }
-
-  return anyUnfinishedRoutes;
+  return model.population.every(salesman => salesman.isFinished);
 }
 
 //##############################################################################
@@ -167,28 +188,18 @@ function shouldProgressGeneration(model: GeneticAlgorithmModel<SalesmanRouteOrga
 //##############################################################################
 
 function stepFunction(model: GeneticAlgorithmModel<SalesmanRouteOrganism>): void {
-  
-  for (let i: number = 0; i < model.population.length; i++) {
-    let salesman: SalesmanRouteOrganism = model.population[i];
-    
-    if (salesman.currentCityIndex >= salesman.genes.length) {
-      salesman.isFinished = true;
-    }
+  // travel to next city
+  for (const salesman of model.population) {
 
-    if (salesman.isFinished) {
-      continue;
-    }
+    if (!salesman.isFinished) {
+      salesman.currentCityIndex += 1;
 
-    if (salesman.currentCityIndex == 0) {
-      salesman.previousCity = HOME_CITY;
-    } else {
-      salesman.previousCity = salesman.genes[salesman.currentCityIndex - 1];
+      if (salesman.currentCityIndex >= salesman.genes.length) {
+        salesman.currentCityIndex = salesman.genes.length - 1;
+        salesman.isFinished = true;
+      }
     }
-    
-    salesman.currentCityIndex += 1;
   }
-
-  return;
 }
 
 //##############################################################################
@@ -249,6 +260,7 @@ document.querySelector("body").appendChild(resetButton);
 resetButton.innerText = "⟲ reset";
 resetButton.addEventListener("click", () => {
   geneticAlgorithm.reset();
+  console.log(geneticAlgorithm.model);
 });
 
 let controls: HTMLDivElement = document.createElement("div");
@@ -266,28 +278,43 @@ displayDiv.appendChild(controls);
 
 document.querySelector("#view").appendChild(displayDiv);
 
+function drawRoute(route: Location[], ctx: CanvasRenderingContext2D, lineWidth: number, strokeStyle: string, lineCap: CanvasLineCap): void {
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = lineCap;
+  ctx.strokeStyle = strokeStyle;
+
+  ctx.beginPath();
+  ctx.moveTo(route[0].longitude, route[0].latitude);
+
+  for (let i = 1; i < route.length; i++) {
+    ctx.lineTo(route[i].longitude, route[i].latitude);
+  }
+
+  // ctx.closePath();
+  ctx.stroke();
+}
+
 function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<SalesmanRouteOrganism>) {
   const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
   clearCanvas(canvas, "rgb(0, 0, 0)");
 
-  for (const city of cities) {
+  ctx.font = "10px Consolas";
+  ctx.fillStyle = "blue";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.fillText(`Average fitness: ${Math.round(model.population.reduce((sum, organism) => sum + calculateFitness(organism), 0) / model.population.length)}`, CANVAS_WIDTH / 2, 18);
+
+  ctx.fillStyle = "rgb(255, 255, 0)";
+  ctx.fillRect(HOME_CITY.longitude, HOME_CITY.latitude, 3, 3);
+
+  for (const city of ROUTE_CITIES) {
     ctx.fillStyle = "rgb(255, 255, 255)";
     ctx.fillRect(city.longitude, city.latitude, 1, 1);
   }
 
   for (const salesman of model.population) {
-    ctx.fillStyle = "rgb(0, 255, 0)";
-
-    if (salesman.currentCityIndex == HOME_CITY_INDEX) {
-      ctx.fillRect(HOME_CITY.longitude, HOME_CITY.latitude, 1, 1);
-      continue;
-    }
-
-    if (salesman.isFinished) {
-      ctx.fillRect(HOME_CITY.longitude, HOME_CITY.latitude, 1, 1);
-    }
-
-    ctx.fillRect(salesman.genes[salesman.currentCityIndex].longitude, salesman.genes[salesman.currentCityIndex].latitude, 1, 1);
+    drawRoute(salesman.genes.slice(0, salesman.currentCityIndex + 1), ctx, 1, 'rgba(255, 255, 255, 0.1)', 'round');
   }
 };
 
