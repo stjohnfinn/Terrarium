@@ -167,6 +167,18 @@ view.style.alignItems = "center";
 view.style.gap = "1rem";
 view.style.justifyContent = "space-between";
 
+view.style.position = "relative";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Word search";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+view.appendChild(title);
+
 document.querySelector("#view").appendChild(view);
 
 function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel<WordOrganism>): void {

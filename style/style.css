@@ -49,6 +49,7 @@ button:active {
 }
 
 #view {
+  padding-top: 3rem;
   min-height: 100vh;
   width: 80vw;
   display: flex;

@@ -234,6 +234,17 @@ displayDiv.style.alignItems = "center";
 displayDiv.style.flexDirection = "column";
 displayDiv.style.gap = "1rem";
 displayDiv.style.justifyContent = "space-evenly";
+displayDiv.style.position = "relative";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Traveling salesman";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+displayDiv.appendChild(title);
 
 let canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.height = CANVAS_HEIGHT;

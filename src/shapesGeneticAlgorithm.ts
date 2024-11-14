@@ -180,6 +180,7 @@ view.style.alignItems = "center";
 view.style.flexDirection = "column";
 view.style.gap = "1rem";
 view.style.justifyContent = "space-evenly";
+view.style.position = "relative";
 
 let canvas: HTMLCanvasElement = document.createElement("canvas");
 canvas.height = CANVAS_HEIGHT;
@@ -419,6 +420,16 @@ controls.style.flexDirection = "row";
 controls.style.alignItems = "flex-start";
 controls.style.justifyContent = "space-evenly";
 controls.style.width = "100%";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Circles of death";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+view.appendChild(title);
 
 view.appendChild(canvas);
 view.appendChild(controls);

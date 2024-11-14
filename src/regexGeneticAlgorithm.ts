@@ -1,13 +1,13 @@
 import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.js";
 
-const MUTATION_CHANCE: number = 0.05;
+const MUTATION_CHANCE: number = 0.08;
 const POPULATION_SIZE: number = 12;
-const FRAME_DELAY: number = 100;
+const FRAME_DELAY: number = 40;
 
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
 
-const TARGET_STRING: string = "awd hfaw 152";
+const TARGET_STRING: string = "bark 183  ababgg";
 
 // should include all valid regex characters, and a space
 const SPECIAL_REGEX_CHARS: string = ".^&*+?{}[]\\|() ";
@@ -54,15 +54,16 @@ function calculateFitness(organism: RegexOrganism): number {
 }
 
 function crossover(parentA: RegexOrganism, parentB: RegexOrganism): RegexOrganism {
-  let offspring: RegexOrganism = structuredClone(parentA);
+  // let offspring: RegexOrganism = structuredClone(parentA);
   
-  for (let i = 0; i < offspring.genes.length; i++) {
-    if (Math.random() > 0.5) {
-      offspring.genes = offspring.genes.slice(0, i) + parentB.genes[i] + offspring.genes.slice(i + 1);
-    }
-  }
+  // for (let i = 0; i < offspring.genes.length; i++) {
+  //   if (Math.random() > 0.5) {
+  //     offspring.genes = offspring.genes.slice(0, i) + parentB.genes[i] + offspring.genes.slice(i + 1);
+  //   }
+  // }
 
-  return offspring;
+  // return offspring;
+  return structuredClone(Math.random() > 0.5 ? parentA : parentB);
 }
 
 function mutate(organism: RegexOrganism): RegexOrganism {
@@ -112,12 +113,13 @@ let geneticAlgorithm: GeneticAlgorithm<RegexOrganism> = new GeneticAlgorithm<Reg
 
 let environment: HTMLDivElement = document.createElement("div");
 environment.style.display = "grid";
-environment.style.gridTemplateColumns = "1fr 1fr 1fr";
+environment.style.gridTemplateColumns = "1fr 1fr";
 environment.style.gap = "0.5rem";
 environment.style.overflowY = "scroll";
 environment.style.justifyItems = "center";
 environment.style.fontSize = "0.5rem";
 environment.style.width = "100%";
+environment.style.height = "200px";
 
 let playButton: HTMLButtonElement = document.createElement("button");
 document.querySelector("body").appendChild(playButton);
@@ -166,12 +168,22 @@ view.style.flexDirection = "column";
 view.style.alignItems = "center";
 view.style.gap = "1rem";
 view.style.justifyContent = "space-between";
+view.style.position = "relative";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Regex";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+view.appendChild(title);
 
 document.querySelector("#view").appendChild(view);
 
 function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel<RegexOrganism>): void {
   environment.innerHTML = "";
-  averageFitnessElement.innerText = `Average Fitness: ${Math.trunc((model.population.reduce((sum, organism) => sum + calculateFitness(organism), 0) / model.population.length) * 10000)}`
 
   for (const word of model.population) {
     let wordElement: HTMLParagraphElement = document.createElement("p");
@@ -186,3 +198,7 @@ function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel<RegexOrganism>
 }
 
 displayWordGeneticAlgorithm(geneticAlgorithm.model);
+
+setInterval(() => {
+  averageFitnessElement.innerText = `Average fitness: ${Math.trunc((geneticAlgorithm.model.population.reduce((sum, organism) => sum + calculateFitness(organism), 0) / geneticAlgorithm.model.population.length) * 10000)}`
+}, 300);
