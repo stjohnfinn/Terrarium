@@ -2,7 +2,7 @@ import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.j
 
 const MUTATION_CHANCE: number = 0.08;
 const POPULATION_SIZE: number = 12;
-const FRAME_DELAY: number = 40;
+const FRAME_DELAY: number = 200;
 
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
@@ -13,6 +13,7 @@ const MAX_HEALTH: number = 100;
 const MAX_ENERGY: number = 100;
 const MAX_HYDRATION: number = 100;
 const RANDOM_POSITION_PADDING: number = CANVAS_HEIGHT * 0.05;
+const POSITION_STEP: number = 5;
 
 type Action = string;
 
@@ -104,7 +105,9 @@ class SurvivorOrganism implements Organism {
   currentActionIndex: number;
 
   constructor() {
-    this.genes.actions = [];
+    this.genes = {
+      actions: []
+    };
     
     for (let i = 0; i < NUM_ACTIONS; i++) {
       this.genes.actions.push(randomValidAction());
@@ -150,18 +153,40 @@ function stepFunction(model: GeneticAlgorithmModel<SurvivorOrganism>): void {
 
   // iterate over every organism and perform the current action
   for (const survivor of model.population) {
+    if (survivor.currentActionIndex >= survivor.genes.actions.length) {
+      continue;
+    }
+
     switch (survivor.genes.actions[survivor.currentActionIndex]) {
       case "walkUp":
-        survivor.setPosition(survivor.position.getX(), survivor.position.getY() - 1);
+        survivor.setPosition(survivor.position.getX(), survivor.position.getY() - POSITION_STEP);
         break;
       case "walkDown":
-        survivor.setPosition(survivor.position.getX(), survivor.position.getY() + 1);
+        survivor.setPosition(survivor.position.getX(), survivor.position.getY() + POSITION_STEP);
         break;
       case "walkLeft":
-        survivor.setPosition(survivor.position.getX() - 1, survivor.position.getY());
+        survivor.setPosition(survivor.position.getX() - POSITION_STEP, survivor.position.getY());
         break;
       case "walkRight":
-        survivor.setPosition(survivor.position.getX() + 1, survivor.position.getY());
+        survivor.setPosition(survivor.position.getX() + POSITION_STEP, survivor.position.getY());
+        break;
+      case "attackUp":
+        console.log("Skipping this one because we haven't defined the related action yet.")
+        break;
+      case "attackDown":
+        console.log("Skipping this one because we haven't defined the related action yet.")
+        break;
+      case "attackLeft":
+        console.log("Skipping this one because we haven't defined the related action yet.")
+        break;
+      case "attackRight":
+        console.log("Skipping this one because we haven't defined the related action yet.")
+        break;
+      case "eat":
+        console.log("Skipping this one because we haven't defined the related action yet.")
+        break;
+      case "drink":
+        console.log("Skipping this one because we haven't defined the related action yet.")
         break;
       
     
@@ -169,6 +194,9 @@ function stepFunction(model: GeneticAlgorithmModel<SurvivorOrganism>): void {
         throw new Error("Undefined action encountered in organism's genes.");
         break;
     }
+
+    // increment the index now
+    survivor.currentActionIndex += 1;
   }
 
   // check for death conditions
@@ -186,3 +214,125 @@ function crossover(parentA: SurvivorOrganism, parentB: SurvivorOrganism): Surviv
 
   return offspring;
 }
+
+function mutate(organism: SurvivorOrganism): SurvivorOrganism {
+  for (let i: number = 0; i < organism.genes.actions.length; i++) {
+    const shouldMutateThisGene = Math.random() < organism.mutationChance;
+
+    if (shouldMutateThisGene) {
+      organism.genes.actions[i] = randomValidAction();
+    }
+  }
+
+  return organism;
+}
+
+function shouldTerminate(model: GeneticAlgorithmModel<SurvivorOrganism>): boolean {
+  return false;
+}
+
+function shouldProgressGeneration(model: GeneticAlgorithmModel<SurvivorOrganism>): boolean {
+  return model.population.every(survivor => survivor.currentActionIndex >= survivor.genes.actions.length);
+}
+
+let geneticAlgorithm = new GeneticAlgorithm(
+  createOrganism,
+  stepFunction,
+  calculateFitness,
+  crossover,
+  mutate,
+  shouldTerminate,
+  shouldProgressGeneration,
+  POPULATION_SIZE,
+  false,
+  FRAME_DELAY
+);
+
+/*******************************************************************************
+ * Display logic
+ */
+
+function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
+  cv.getContext("2d").fillStyle = color;
+  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}
+
+let displayDiv: HTMLDivElement = document.createElement("div");
+displayDiv.style.display = "flex";
+displayDiv.style.alignItems = "center";
+displayDiv.style.flexDirection = "column";
+displayDiv.style.gap = "1rem";
+displayDiv.style.justifyContent = "space-evenly";
+displayDiv.style.position = "relative";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Survival";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+displayDiv.appendChild(title);
+
+let canvas: HTMLCanvasElement = document.createElement("canvas");
+canvas.height = CANVAS_HEIGHT;
+canvas.width = CANVAS_WIDTH;
+canvas.style.border = "1px solid white";
+canvas.style.background = "black";
+
+let playButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(playButton);
+playButton.innerText = "▶ play ";
+playButton.addEventListener("click", () => {
+  geneticAlgorithm.play();
+})
+
+let pauseButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(pauseButton);
+pauseButton.innerText = "⏸ pause";
+pauseButton.addEventListener("click", () => {
+  geneticAlgorithm.pause();
+});
+
+let resetButton: HTMLButtonElement = document.createElement("button");
+document.querySelector("body").appendChild(resetButton);
+resetButton.innerText = "⟲ reset";
+resetButton.addEventListener("click", () => {
+  geneticAlgorithm.reset();
+  console.log(geneticAlgorithm.model);
+});
+
+let controls: HTMLDivElement = document.createElement("div");
+controls.appendChild(playButton);
+controls.appendChild(pauseButton);
+controls.appendChild(resetButton);
+controls.style.display = "flex";
+controls.style.flexDirection = "row";
+controls.style.alignItems = "flex-start";
+controls.style.justifyContent = "space-evenly";
+controls.style.width = "100%";
+
+displayDiv.appendChild(canvas);
+displayDiv.appendChild(controls);
+
+document.querySelector("#view").appendChild(displayDiv);
+
+function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<SurvivorOrganism>) {
+  const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+  clearCanvas(canvas, "rgb(0, 0, 0)");
+
+  ctx.fillStyle = "rgb(255, 255, 0)";
+  for (const organism of model.population) {
+    ctx.fillRect(organism.position.getX(), organism.position.getY(), 5, 5);
+  }
+};
+
+function gameLoop(model: GeneticAlgorithmModel<SurvivorOrganism>): void {
+  display(canvas, model);
+  requestAnimationFrame(() => {
+    gameLoop(geneticAlgorithm.model);
+  });
+}
+
+gameLoop(geneticAlgorithm.model);
