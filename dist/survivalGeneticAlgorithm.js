@@ -11,20 +11,23 @@ const MAX_ENERGY = 100;
 const MAX_HYDRATION = 100;
 const RANDOM_POSITION_PADDING = CANVAS_HEIGHT * 0.05;
 const POSITION_STEP = 5;
-const VALID_ACTIONS = [
-    "walkUp",
-    "walkDown",
-    "walkLeft",
-    "walkRight",
-    "attackUp",
-    "attackDown",
-    "attackLeft",
-    "attackRight",
-    "eat",
-    "drink"
-];
+var Action;
+(function (Action) {
+    Action[Action["walkUp"] = 0] = "walkUp";
+    Action[Action["walkDown"] = 1] = "walkDown";
+    Action[Action["walkLeft"] = 2] = "walkLeft";
+    Action[Action["walkRight"] = 3] = "walkRight";
+    Action[Action["attackUp"] = 4] = "attackUp";
+    Action[Action["attackDown"] = 5] = "attackDown";
+    Action[Action["attackLeft"] = 6] = "attackLeft";
+    Action[Action["attackRight"] = 7] = "attackRight";
+    Action[Action["eat"] = 8] = "eat";
+    Action[Action["drink"] = 9] = "drink";
+})(Action || (Action = {}));
 function randomValidAction() {
-    return VALID_ACTIONS[getRandomInt(0, VALID_ACTIONS.length - 1)];
+    const FIRST_ACTION = Action.walkUp;
+    const LAST_ACTION = Action.drink;
+    return getRandomInt(FIRST_ACTION, LAST_ACTION);
 }
 class Position {
     constructor(x, y, minX, maxX, minY, maxY) {
@@ -98,34 +101,34 @@ function stepFunction(model) {
             continue;
         }
         switch (survivor.genes.actions[survivor.currentActionIndex]) {
-            case "walkUp":
+            case Action.walkUp:
                 survivor.setPosition(survivor.position.getX(), survivor.position.getY() - POSITION_STEP);
                 break;
-            case "walkDown":
+            case Action.walkDown:
                 survivor.setPosition(survivor.position.getX(), survivor.position.getY() + POSITION_STEP);
                 break;
-            case "walkLeft":
+            case Action.walkLeft:
                 survivor.setPosition(survivor.position.getX() - POSITION_STEP, survivor.position.getY());
                 break;
-            case "walkRight":
+            case Action.walkRight:
                 survivor.setPosition(survivor.position.getX() + POSITION_STEP, survivor.position.getY());
                 break;
-            case "attackUp":
+            case Action.attackUp:
+                // search above the organism for others nearby and attack
+                break;
+            case Action.attackDown:
                 console.log("Skipping this one because we haven't defined the related action yet.");
                 break;
-            case "attackDown":
+            case Action.attackLeft:
                 console.log("Skipping this one because we haven't defined the related action yet.");
                 break;
-            case "attackLeft":
+            case Action.attackRight:
                 console.log("Skipping this one because we haven't defined the related action yet.");
                 break;
-            case "attackRight":
+            case Action.eat:
                 console.log("Skipping this one because we haven't defined the related action yet.");
                 break;
-            case "eat":
-                console.log("Skipping this one because we haven't defined the related action yet.");
-                break;
-            case "drink":
+            case Action.drink:
                 console.log("Skipping this one because we haven't defined the related action yet.");
                 break;
             default:
@@ -142,6 +145,10 @@ function crossover(parentA, parentB) {
     let offspring = new SurvivorOrganism();
     for (let i = 0; i < offspring.genes.actions.length; i++) {
         if (Math.random() > 0.5) {
+            offspring.genes.actions[i] = parentA.genes.actions[i];
+        }
+        else {
+            offspring.genes.actions[i] = parentB.genes.actions[i];
         }
     }
     return offspring;
@@ -226,7 +233,26 @@ function display(canvas, model) {
     clearCanvas(canvas, "rgb(0, 0, 0)");
     ctx.fillStyle = "rgb(255, 255, 0)";
     for (const organism of model.population) {
+        ctx.fillStyle = "rgb(255, 255, 0)";
         ctx.fillRect(organism.position.getX(), organism.position.getY(), 5, 5);
+        ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
+        switch (organism.genes.actions[organism.currentActionIndex]) {
+            case Action.attackUp:
+                ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() - 10, 10, 10);
+                break;
+            case Action.attackDown:
+                ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() + 5, 10, 10);
+                break;
+            case Action.attackLeft:
+                ctx.fillRect(organism.position.getX() - 10, organism.position.getY() - 2.5, 10, 10);
+                break;
+            case Action.attackRight:
+                ctx.fillRect(organism.position.getX() + 5, organism.position.getY() - 2.5, 10, 10);
+                break;
+            default:
+                // throw new Error("Undefined action encountered in organism's genes.");
+                break;
+        }
     }
 }
 ;

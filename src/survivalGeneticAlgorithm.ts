@@ -15,24 +15,26 @@ const MAX_HYDRATION: number = 100;
 const RANDOM_POSITION_PADDING: number = CANVAS_HEIGHT * 0.05;
 const POSITION_STEP: number = 5;
 
-type Action = string;
+enum Action {
+  walkUp,
+  walkDown,
+  walkLeft,
+  walkRight,
 
-const VALID_ACTIONS: Action[] = [
-  "walkUp",
-  "walkDown",
-  "walkLeft",
-  "walkRight",
+  attackUp,
+  attackDown,
+  attackLeft,
+  attackRight,
 
-  "attackUp",
-  "attackDown",
-  "attackLeft",
-  "attackRight",
-  "eat",
-  "drink"
-]
+  eat,
+  drink
+}
 
-function randomValidAction() {
-  return VALID_ACTIONS[getRandomInt(0, VALID_ACTIONS.length - 1)];
+function randomValidAction(): Action {
+  const FIRST_ACTION = Action.walkUp;
+  const LAST_ACTION = Action.drink;
+
+  return getRandomInt(FIRST_ACTION, LAST_ACTION);
 }
 
 type SurvivorGenes = {
@@ -158,34 +160,34 @@ function stepFunction(model: GeneticAlgorithmModel<SurvivorOrganism>): void {
     }
 
     switch (survivor.genes.actions[survivor.currentActionIndex]) {
-      case "walkUp":
+      case Action.walkUp:
         survivor.setPosition(survivor.position.getX(), survivor.position.getY() - POSITION_STEP);
         break;
-      case "walkDown":
+      case Action.walkDown:
         survivor.setPosition(survivor.position.getX(), survivor.position.getY() + POSITION_STEP);
         break;
-      case "walkLeft":
+      case Action.walkLeft:
         survivor.setPosition(survivor.position.getX() - POSITION_STEP, survivor.position.getY());
         break;
-      case "walkRight":
+      case Action.walkRight:
         survivor.setPosition(survivor.position.getX() + POSITION_STEP, survivor.position.getY());
         break;
-      case "attackUp":
+      case Action.attackUp:
+        // search above the organism for others nearby and attack
+        break;
+      case Action.attackDown:
         console.log("Skipping this one because we haven't defined the related action yet.")
         break;
-      case "attackDown":
+      case Action.attackLeft:
         console.log("Skipping this one because we haven't defined the related action yet.")
         break;
-      case "attackLeft":
+      case Action.attackRight:
         console.log("Skipping this one because we haven't defined the related action yet.")
         break;
-      case "attackRight":
+      case Action.eat:
         console.log("Skipping this one because we haven't defined the related action yet.")
         break;
-      case "eat":
-        console.log("Skipping this one because we haven't defined the related action yet.")
-        break;
-      case "drink":
+      case Action.drink:
         console.log("Skipping this one because we haven't defined the related action yet.")
         break;
       
@@ -208,7 +210,9 @@ function crossover(parentA: SurvivorOrganism, parentB: SurvivorOrganism): Surviv
   
   for (let i = 0; i < offspring.genes.actions.length; i++) {
     if (Math.random() > 0.5) {
-
+      offspring.genes.actions[i] = parentA.genes.actions[i]
+    } else {
+      offspring.genes.actions[i] = parentB.genes.actions[i]
     }
   }
 
@@ -324,7 +328,27 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<Survivo
 
   ctx.fillStyle = "rgb(255, 255, 0)";
   for (const organism of model.population) {
+    ctx.fillStyle = "rgb(255, 255, 0)";
     ctx.fillRect(organism.position.getX(), organism.position.getY(), 5, 5);
+    
+    ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
+    switch(organism.genes.actions[organism.currentActionIndex]) {
+      case Action.attackUp:
+        ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() - 10, 10, 10);
+        break;
+      case Action.attackDown:
+        ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() + 5, 10, 10);
+        break;
+      case Action.attackLeft:
+        ctx.fillRect(organism.position.getX() - 10, organism.position.getY() - 2.5, 10, 10);
+        break;
+      case Action.attackRight:
+        ctx.fillRect(organism.position.getX() + 5, organism.position.getY() - 2.5, 10, 10);
+        break;
+      default:
+        // throw new Error("Undefined action encountered in organism's genes.");
+        break;
+    }
   }
 };
 
