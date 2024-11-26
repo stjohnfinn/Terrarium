@@ -2,7 +2,7 @@ import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.j
 
 const MUTATION_CHANCE: number = 0.08;
 const POPULATION_SIZE: number = 12;
-const FRAME_DELAY: number = 200;
+const FRAME_DELAY: number = 10;
 
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
@@ -14,6 +14,11 @@ const MAX_ENERGY: number = 100;
 const MAX_HYDRATION: number = 100;
 const RANDOM_POSITION_PADDING: number = CANVAS_HEIGHT * 0.05;
 const POSITION_STEP: number = 5;
+
+enum Item {
+  water,
+  food
+}
 
 enum Action {
   walkUp,
@@ -103,8 +108,10 @@ class SurvivorOrganism implements Organism {
 
   isAlive: boolean;
   position: Position;
+  kills: number;
 
   currentActionIndex: number;
+  private inventory: Item[];
 
   constructor() {
     this.genes = {
@@ -129,11 +136,28 @@ class SurvivorOrganism implements Organism {
       CANVAS_HEIGHT
     );
     this.currentActionIndex = 0;
+    this.inventory = [];
   }
 
   setPosition(x: number, y: number) {
     this.position.setX(x);
     this.position.setY(y);
+  }
+
+  hasFood(): boolean {
+    for (const item of this.inventory) {
+      if (item == Item.food) {
+        return true;
+      }
+    }
+  }
+  
+  hasWater(): boolean {
+    for (const item of this.inventory) {
+      if (item == Item.water) {
+        return true;
+      }
+    }
   }
 }
 
@@ -147,6 +171,7 @@ function calculateFitness(organism: SurvivorOrganism): number {
   fitness += organism.currentEnergy;
   fitness += organism.currentHealth;
   fitness += organism.currentHydration;
+  fitness *= organism.kills;
 
   return organism.isAlive ? fitness : 0;
 }
@@ -176,23 +201,33 @@ function stepFunction(model: GeneticAlgorithmModel<SurvivorOrganism>): void {
         // search above the organism for others nearby and attack
         break;
       case Action.attackDown:
-        console.log("Skipping this one because we haven't defined the related action yet.")
+        // search above the organism for others nearby and attack
         break;
       case Action.attackLeft:
-        console.log("Skipping this one because we haven't defined the related action yet.")
+        // search above the organism for others nearby and attack
         break;
       case Action.attackRight:
-        console.log("Skipping this one because we haven't defined the related action yet.")
+        // search above the organism for others nearby and attack
         break;
       case Action.eat:
-        console.log("Skipping this one because we haven't defined the related action yet.")
+        // if the survivor has food, eat it and increase their health
+        // and then remove the food from their inventory
+        survivor.currentEnergy += Math.round(MAX_ENERGY / 5);
+        if (survivor.currentEnergy > MAX_ENERGY) {
+          survivor.currentEnergy = MAX_ENERGY;
+        }
         break;
       case Action.drink:
-        console.log("Skipping this one because we haven't defined the related action yet.")
+        // if the survivor has water, eat it and increase hydration
+        // and then remove the water from their inventory
+        survivor.currentHydration += Math.round(MAX_HYDRATION / 5);
+        if (survivor.currentHydration > MAX_HYDRATION) {
+          survivor.currentHydration = MAX_HYDRATION;
+        }
         break;
-      
-    
       default:
+        console.log(survivor.genes.actions);
+        console.log(`bad gene in question: ${survivor.genes.actions[survivor.currentActionIndex]}`);
         throw new Error("Undefined action encountered in organism's genes.");
         break;
     }
@@ -331,22 +366,41 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<Survivo
     ctx.fillStyle = "rgb(255, 255, 0)";
     ctx.fillRect(organism.position.getX(), organism.position.getY(), 5, 5);
     
-    ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
     switch(organism.genes.actions[organism.currentActionIndex]) {
       case Action.attackUp:
+        ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
         ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() - 10, 10, 10);
         break;
       case Action.attackDown:
+        ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
         ctx.fillRect(organism.position.getX() - 2.5, organism.position.getY() + 5, 10, 10);
         break;
       case Action.attackLeft:
+        ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
         ctx.fillRect(organism.position.getX() - 10, organism.position.getY() - 2.5, 10, 10);
         break;
       case Action.attackRight:
+        ctx.fillStyle = "rgba(255, 0, 0, 0.25)";
         ctx.fillRect(organism.position.getX() + 5, organism.position.getY() - 2.5, 10, 10);
         break;
+      case Action.drink:
+        ctx.fillStyle = `rgb(0, 0, 0)`;
+        if (organism.hasFood()) {
+          ctx.fillText("💧", organism.position.getX(), organism.position.getY());
+        }
+      case Action.eat:
+        ctx.fillStyle = `rgb(0, 0, 0)`;
+        if (organism.hasWater()) {
+          ctx.fillText("🥩", organism.position.getX(), organism.position.getY());
+        }
+      case Action.walkUp:
+      case Action.walkDown:
+      case Action.walkLeft:
+      case Action.walkRight:
+        break;
       default:
-        // throw new Error("Undefined action encountered in organism's genes.");
+        console.log(`bad gene in question: ${organism.genes.actions[organism.currentActionIndex]}`);
+        throw new Error("Undefined action encountered in organism's genes.");
         break;
     }
   }
