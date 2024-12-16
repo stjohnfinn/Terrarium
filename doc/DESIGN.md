@@ -121,3 +121,11 @@ kind of simplified (e.g. the `requestAnimationFrame` call isn't mentioned).
 
 And then I implemented it by putting the `this.stepFunction` call right above 
 the `this.next` function call.
+
+## Design Notes - 0ct 26
+
+The `stepFunction` must modify the provided model in-place. For some reason, I 
+thought it was going to return a new model, but I realized the `terrarium.ts` 
+code was not assigning the return value to `this.model`. Why didn't I catch this
+when implementing the word GA? Because the word GA doesn't do anything between
+frames. Its step function is a no-op.

@@ -25,11 +25,11 @@ function crossover(parentA, parentB) {
             offspring.genes = offspring.genes.substring(0, i) + parentB.genes[i] + offspring.genes.substring(i + 1);
         }
         if (offspring.genes.length != parentA.genes.length) {
-            console.log(offspring);
-            console.log(parentA);
             throw new Error("Crossover has created an organism that is a different species.");
         }
     }
+    parentA = null;
+    parentB = null;
     return offspring;
 }
 function calculateFitness(organism) {
@@ -53,6 +53,7 @@ function mutate(organism) {
     if (mutatedOrganism.genes.length != organism.genes.length) {
         throw new Error("Mutation has created an organism that is a different species.");
     }
+    organism = null;
     return mutatedOrganism;
 }
 function shouldTerminate(model) {
@@ -67,14 +68,12 @@ function shouldTerminate(model) {
     return targetStringFound;
 }
 function shouldProgressGeneration(model) {
-    console.log("New generation!");
     return true;
 }
 function stepFunction(model) {
     return;
 }
 let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, Config.POPULATION_SIZE);
-console.log(geneticAlgorithm);
 let environment = document.createElement("div");
 environment.style.display = "grid";
 environment.style.gridTemplateColumns = "1fr 1fr 1fr";
@@ -121,6 +120,16 @@ view.style.flexDirection = "column";
 view.style.alignItems = "center";
 view.style.gap = "1rem";
 view.style.justifyContent = "space-between";
+view.style.position = "relative";
+let title = document.createElement("p");
+title.innerText = "Word search";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+view.appendChild(title);
 document.querySelector("#view").appendChild(view);
 function displayWordGeneticAlgorithm(model) {
     environment.innerHTML = "";

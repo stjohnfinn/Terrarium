@@ -38,12 +38,12 @@ function crossover(parentA: WordOrganism, parentB: WordOrganism): WordOrganism {
     }
 
     if (offspring.genes.length != parentA.genes.length) {
-      console.log(offspring);
-      console.log(parentA);
       throw new Error("Crossover has created an organism that is a different species.");
     }
   }
 
+  parentA = null;
+  parentB = null;
   return offspring;
 }
 
@@ -76,10 +76,11 @@ function mutate(organism: WordOrganism): WordOrganism {
     throw new Error("Mutation has created an organism that is a different species.");
   }
 
+  organism = null;
   return mutatedOrganism;
 }
 
-function shouldTerminate(model: GeneticAlgorithmModel): boolean {
+function shouldTerminate(model: GeneticAlgorithmModel<WordOrganism>): boolean {
   let targetStringFound: boolean = false;
 
   for (let i: number = 0; i < model.populationSize; i++) {
@@ -94,17 +95,15 @@ function shouldTerminate(model: GeneticAlgorithmModel): boolean {
   return targetStringFound;
 }
 
-function shouldProgressGeneration(model: GeneticAlgorithmModel): boolean {
-  console.log("New generation!");
-
+function shouldProgressGeneration(model: GeneticAlgorithmModel<WordOrganism>): boolean {
   return true;
 }
 
-function stepFunction(model: GeneticAlgorithmModel) {
+function stepFunction(model: GeneticAlgorithmModel<WordOrganism>) {
   return;
 }
 
-let geneticAlgorithm: GeneticAlgorithm = new GeneticAlgorithm(
+let geneticAlgorithm: GeneticAlgorithm<WordOrganism> = new GeneticAlgorithm(
   createOrganism,
   stepFunction,
   calculateFitness,
@@ -114,8 +113,6 @@ let geneticAlgorithm: GeneticAlgorithm = new GeneticAlgorithm(
   shouldProgressGeneration, 
   Config.POPULATION_SIZE
 );
-
-console.log(geneticAlgorithm);
 
 let environment: HTMLDivElement = document.createElement("div");
 environment.style.display = "grid";
@@ -170,9 +167,21 @@ view.style.alignItems = "center";
 view.style.gap = "1rem";
 view.style.justifyContent = "space-between";
 
+view.style.position = "relative";
+
+let title: HTMLParagraphElement = document.createElement("p");
+title.innerText = "Word search";
+title.style.position = "absolute";
+title.style.left = "0px";
+title.style.top = "0px";
+title.style.padding = "0.25rem";
+title.style.transform = "translateY(-100%)";
+title.style.fontSize = "0.75rem";
+view.appendChild(title);
+
 document.querySelector("#view").appendChild(view);
 
-function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel): void {
+function displayWordGeneticAlgorithm(model: GeneticAlgorithmModel<WordOrganism>): void {
   environment.innerHTML = "";
 
   for (const word of model.population) {

@@ -3,6 +3,15 @@
  *
  * Defines the main classes and interfaces that make up the framework.
  */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 /**
  * The "controller" that manages a genetic algorithm model. This class handles
  * the flow of the genetic algorithm from start to finish, from frame to frame,
@@ -32,7 +41,7 @@ export class GeneticAlgorithm {
      */
     constructor(
     // class methods
-    createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, populationSize = 50, debug = false, 
+    createOrganism, stepFunction, calculateFitness, crossover, mutate, shouldTerminate, shouldProgressGeneration, populationSize = 50, debug = false, frameDelayMilliseconds = 0, 
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
     produceNextGeneration) {
@@ -48,24 +57,23 @@ export class GeneticAlgorithm {
                  * @returns a genetic algorithm model with a new generation
                  */
                 standard: (model) => {
-                    let newModel = structuredClone(model);
-                    newModel.generation++;
+                    model.generation++;
                     // find two best parents
-                    const sortedPopulation = newModel.population.sort((a, b) => {
+                    const sortedPopulation = model.population.sort((a, b) => {
                         return this.calculateFitness(b) - this.calculateFitness(a);
                     });
                     const parentA = sortedPopulation[0];
                     const parentB = sortedPopulation[1];
                     // perform crossover
-                    newModel.population = [];
-                    for (let i = 0; i < newModel.populationSize; i++) {
-                        newModel.population.push(this.crossover(parentA, parentB));
+                    model.population = [];
+                    for (let i = 0; i < model.populationSize; i++) {
+                        model.population.push(this.crossover(parentA, parentB));
                     }
                     // mutation
-                    for (let i = 0; i < newModel.populationSize; i++) {
-                        newModel.population[i] = this.mutate(newModel.population[i]);
+                    for (let i = 0; i < model.populationSize; i++) {
+                        model.population[i] = this.mutate(model.population[i]);
                     }
-                    return newModel;
+                    return model;
                 }
             }
         };
@@ -88,6 +96,7 @@ export class GeneticAlgorithm {
         // member variables ********************************************************
         this.debug = debug;
         this.isRunning = false;
+        this.frameDelayMilliseconds = frameDelayMilliseconds;
         // generate new population *************************************************
         this.initializePopulation();
         /**
@@ -106,31 +115,35 @@ export class GeneticAlgorithm {
      * @returns nothing
      */
     step() {
-        if (this.shouldTerminate(this.model)) {
-            // the genetic algorithm is completely finished, so let's stop
-            this.isRunning = false;
-            this.log("determined the GA should stop here.");
-        }
-        // this block must come before any block that calls next()
-        if (this.isRunning === false) {
-            this.log("the GA is not running right now, exiting game loop.");
-            // we should NOT continue the loop, so let's just exit
-            return;
-        }
-        // generation is finished, lets create offspring and mutate
-        if (this.shouldProgressGeneration(this.model)) {
-            this.log("progressing to the next generation.");
-            this.model.frameCountSinceGenStart = 0;
-            this.model = this.produceNextGeneration(this.model);
-        }
-        // we're still running the genetic algorithm, so go to the next frame
-        if (this.isRunning) {
-            this.log("progressing to the next frame.");
-            this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
-            this.model.frameCountSinceGenStart += 1;
-            this.stepFunction(this.model);
-            this.next();
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            this.log("model right now:");
+            this.log(this.model);
+            if (this.isRunning) {
+                this.log("progressing to the next frame.");
+                this.log(`current frame count: ${this.model.frameCountSinceGenStart}`);
+                this.model.frameCountSinceGenStart += 1;
+                this.stepFunction(this.model);
+                yield new Promise(r => setTimeout(r, this.frameDelayMilliseconds));
+                this.next();
+            }
+            if (this.shouldTerminate(this.model)) {
+                // the genetic algorithm is completely finished, so let's stop
+                this.isRunning = false;
+                this.log("determined the GA should stop here.");
+            }
+            // this block must come before any block that calls next()
+            if (this.isRunning === false) {
+                this.log("the GA is not running right now, exiting game loop.");
+                // we should NOT continue the loop, so let's just exit
+                return;
+            }
+            // generation is finished, lets create offspring and mutate
+            if (this.shouldProgressGeneration(this.model)) {
+                this.log("progressing to the next generation.");
+                this.model.frameCountSinceGenStart = 0;
+                this.model = this.produceNextGeneration(this.model);
+            }
+        });
     }
     /**
      * This is abstracted only because it's a weird looking block and it was in
