@@ -395,7 +395,7 @@ document.querySelector("body").appendChild(playButton);
 playButton.innerText = "▶ play ";
 playButton.addEventListener("click", () => {
   geneticAlgorithm.play();
-})
+});
 
 let pauseButton: HTMLButtonElement = document.createElement("button");
 document.querySelector("body").appendChild(pauseButton);
