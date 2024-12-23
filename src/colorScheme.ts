@@ -1,13 +1,13 @@
 import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.js";
 
-const MUTATION_CHANCE: number = 0.1;
+const MUTATION_CHANCE: number = 0.08;
 const POPULATION_SIZE: number = 10;
-const FRAME_DELAY: number = 300;
+const FRAME_DELAY: number = 50;
 
 const CANVAS_HEIGHT: number = 250;
 const CANVAS_WIDTH: number = 250;
 
-const COLOR_COUNT_EACH: number = 5;
+const COLOR_COUNT_EACH: number = 4;
 
 //##############################################################################
 // createOrganism
@@ -207,6 +207,36 @@ function mutate(organism: ColorSchemeOrganism): ColorSchemeOrganism {
         organism.genes[i].red -= organism.genes[i].red * mutationCoeff;
       }
     }
+
+    const shouldMutateGreen = Math.random() < MUTATION_CHANCE;
+    
+    if (shouldMutateGreen) {
+      const mutationCoeff: number = Math.random() / 2;
+
+      // true is positive, false is negative
+      const mutationSign: boolean = Math.random() > 0.5;
+
+      if (mutationSign) {
+        organism.genes[i].green += organism.genes[i].green * mutationCoeff;
+      } else {
+        organism.genes[i].green -= organism.genes[i].green * mutationCoeff;
+      }
+    }
+
+    const shouldMutateBlue = Math.random() < MUTATION_CHANCE;
+    
+    if (shouldMutateBlue) {
+      const mutationCoeff: number = Math.random() / 2;
+
+      // true is positive, false is negative
+      const mutationSign: boolean = Math.random() > 0.5;
+
+      if (mutationSign) {
+        organism.genes[i].blue += organism.genes[i].blue * mutationCoeff;
+      } else {
+        organism.genes[i].blue -= organism.genes[i].blue * mutationCoeff;
+      }
+    }
   }
 
   return organism;
@@ -216,7 +246,7 @@ function mutate(organism: ColorSchemeOrganism): ColorSchemeOrganism {
 // stepFunction
 //##############################################################################
 
-function stepFunction(model: GeneticAlgorithmModel<ColorSchemeOrganism>): void{
+function stepFunction(model: GeneticAlgorithmModel<ColorSchemeOrganism>): void {
   return;
 }
 

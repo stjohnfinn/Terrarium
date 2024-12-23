@@ -1,10 +1,10 @@
 import { GeneticAlgorithm } from "./terrarium.js";
-const MUTATION_CHANCE = 0.1;
+const MUTATION_CHANCE = 0.08;
 const POPULATION_SIZE = 10;
-const FRAME_DELAY = 300;
+const FRAME_DELAY = 50;
 const CANVAS_HEIGHT = 250;
 const CANVAS_WIDTH = 250;
-const COLOR_COUNT_EACH = 5;
+const COLOR_COUNT_EACH = 4;
 class ColorSchemeOrganism {
     constructor() {
         this.mutationChance = MUTATION_CHANCE;
@@ -143,6 +143,30 @@ function mutate(organism) {
             }
             else {
                 organism.genes[i].red -= organism.genes[i].red * mutationCoeff;
+            }
+        }
+        const shouldMutateGreen = Math.random() < MUTATION_CHANCE;
+        if (shouldMutateGreen) {
+            const mutationCoeff = Math.random() / 2;
+            // true is positive, false is negative
+            const mutationSign = Math.random() > 0.5;
+            if (mutationSign) {
+                organism.genes[i].green += organism.genes[i].green * mutationCoeff;
+            }
+            else {
+                organism.genes[i].green -= organism.genes[i].green * mutationCoeff;
+            }
+        }
+        const shouldMutateBlue = Math.random() < MUTATION_CHANCE;
+        if (shouldMutateBlue) {
+            const mutationCoeff = Math.random() / 2;
+            // true is positive, false is negative
+            const mutationSign = Math.random() > 0.5;
+            if (mutationSign) {
+                organism.genes[i].blue += organism.genes[i].blue * mutationCoeff;
+            }
+            else {
+                organism.genes[i].blue -= organism.genes[i].blue * mutationCoeff;
             }
         }
     }
