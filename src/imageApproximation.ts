@@ -7,7 +7,7 @@ const FRAME_DELAY: number = 0;
 const CANVAS_HEIGHT: number = 150;
 const CANVAS_WIDTH: number = 150;
 
-const GENOME_LENGTH: number = 250;
+const GENOME_LENGTH: number = 500;
 const TARGET_CANVAS: HTMLCanvasElement = document.createElement("canvas");
 TARGET_CANVAS.height = CANVAS_HEIGHT;
 TARGET_CANVAS.width = CANVAS_WIDTH;
@@ -85,8 +85,8 @@ function getRandomEllipse(): Ellipse{
       x: getRandomInt(0, CANVAS_WIDTH),
       y: getRandomInt(0, CANVAS_HEIGHT)
     },
-    getRandomInt(1, 25),
-    getRandomInt(1, 25),
+    getRandomInt(1, 20),
+    getRandomInt(1, 20),
     getRandomColor()
   )
 }

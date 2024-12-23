@@ -4,7 +4,7 @@ const POPULATION_SIZE = 10;
 const FRAME_DELAY = 0;
 const CANVAS_HEIGHT = 150;
 const CANVAS_WIDTH = 150;
-const GENOME_LENGTH = 250;
+const GENOME_LENGTH = 500;
 const TARGET_CANVAS = document.createElement("canvas");
 TARGET_CANVAS.height = CANVAS_HEIGHT;
 TARGET_CANVAS.width = CANVAS_WIDTH;
@@ -51,7 +51,7 @@ function getRandomEllipse() {
     return new Ellipse({
         x: getRandomInt(0, CANVAS_WIDTH),
         y: getRandomInt(0, CANVAS_HEIGHT)
-    }, getRandomInt(1, 25), getRandomInt(1, 25), getRandomColor());
+    }, getRandomInt(1, 20), getRandomInt(1, 20), getRandomColor());
 }
 class ImageApproxOrganism {
     constructor() {
