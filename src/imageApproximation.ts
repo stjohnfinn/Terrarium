@@ -2,12 +2,13 @@ import { Organism, GeneticAlgorithm, GeneticAlgorithmModel } from "./terrarium.j
 
 const MUTATION_CHANCE: number = 0.01;
 const POPULATION_SIZE: number = 10;
-const FRAME_DELAY: number = 0;
+const FRAME_DELAY: number = 40;
+const DISPLAY_DELAY: number = 500;
 
-const CANVAS_HEIGHT: number = 150;
-const CANVAS_WIDTH: number = 150;
+const CANVAS_HEIGHT: number = 100;
+const CANVAS_WIDTH: number = 100;
 
-const GENOME_LENGTH: number = 500;
+const GENOME_LENGTH: number = 300;
 const TARGET_CANVAS: HTMLCanvasElement = document.createElement("canvas");
 TARGET_CANVAS.height = CANVAS_HEIGHT;
 TARGET_CANVAS.width = CANVAS_WIDTH;
@@ -27,6 +28,8 @@ clearCanvas(SANDBOX_CANVAS);
 
 const EMPTY_GENE_CHANCE: number = 0.2;
 const EMPTY_GENE_FITNESS_COEFF: number = 0.5;
+
+const COLOR_DIFF_LOSS_COEFF: number = 10;
 
 function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
   cv.getContext("2d").fillStyle = color;
@@ -85,8 +88,8 @@ function getRandomEllipse(): Ellipse{
       x: getRandomInt(0, CANVAS_WIDTH),
       y: getRandomInt(0, CANVAS_HEIGHT)
     },
-    getRandomInt(1, 20),
-    getRandomInt(1, 20),
+    getRandomInt(1, CANVAS_WIDTH / 10),
+    getRandomInt(1, CANVAS_HEIGHT / 10),
     getRandomColor()
   )
 }
@@ -152,10 +155,10 @@ function calculateFitness(organism: ImageApproxOrganism): number {
   // Compare pixel data directly from Uint8ClampedArrays
   for (let i = 0; i < targetImageData.length; i += 4) {
     // Each pixel has 4 values (R,G,B,A)
-    fitness -= Math.abs(targetImageData[i] - sandboxImageData[i]) / 255;       // Red
-    fitness -= Math.abs(targetImageData[i+1] - sandboxImageData[i+1]) / 255;   // Green
-    fitness -= Math.abs(targetImageData[i+2] - sandboxImageData[i+2]) / 255;   // Blue
-    fitness -= Math.abs((targetImageData[i+3] / 255) - (sandboxImageData[i+3] / 255)); // Alpha
+    fitness -= Math.abs(targetImageData[i] - sandboxImageData[i]) / 255 * COLOR_DIFF_LOSS_COEFF;       // Red
+    fitness -= Math.abs(targetImageData[i+1] - sandboxImageData[i+1]) / 255 * COLOR_DIFF_LOSS_COEFF;   // Green
+    fitness -= Math.abs(targetImageData[i+2] - sandboxImageData[i+2]) / 255 * COLOR_DIFF_LOSS_COEFF;   // Blue
+    fitness -= Math.abs((targetImageData[i+3] / 255) - (sandboxImageData[i+3] / 255)) * COLOR_DIFF_LOSS_COEFF; // Alpha
   }
 
   return Math.trunc(fitness);
@@ -274,11 +277,6 @@ title.style.padding = "0.25rem";
 title.style.transform = "translateY(-100%)";
 title.style.fontSize = "0.75rem";
 
-let fitnessMetric: HTMLParagraphElement = document.createElement("p");
-fitnessMetric.innerText = "Average highest fitness: 0";
-fitnessMetric.style.padding = "0.25rem";
-fitnessMetric.style.fontSize = "0.75rem";
-
 let canvasContainer: HTMLDivElement = document.createElement("div");
 canvasContainer.style.display = "flex";
 canvasContainer.style.flexDirection = "row";
@@ -290,7 +288,6 @@ canvasContainer.appendChild(DISPLAY_CANVAS);
 canvasContainer.appendChild(TARGET_CANVAS);
 
 // append the whole view
-view.appendChild(fitnessMetric);
 view.appendChild(canvasContainer);
 view.appendChild(title);
 view.appendChild(controls);
@@ -302,9 +299,6 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ImageAp
   const mostFitOrganism = geneticAlgorithm.model.population.reduce((best, curr) => {
     return calculateFitness(curr) > calculateFitness(best) ? curr : best;
   });
-
-  const averageFitness = geneticAlgorithm.model.population.reduce((sum, current) => sum + calculateFitness(current), 0) / geneticAlgorithm.model.population.length;
-  fitnessMetric.innerText = `Average highest fitness: ${averageFitness}`;
 
   for (let i = 0; i < mostFitOrganism.genes.length; i++) {
     // skip null shapes
@@ -319,10 +313,11 @@ function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ImageAp
   }
 }
 
-function gameLoop(model: GeneticAlgorithmModel<ImageApproxOrganism>): void {
+async function gameLoop(model: GeneticAlgorithmModel<ImageApproxOrganism>): Promise<void> {
   display(DISPLAY_CANVAS, model);
-  requestAnimationFrame(() => {
-    gameLoop(geneticAlgorithm.model);
+  requestAnimationFrame(async () => {
+    await new Promise(r => setTimeout(r, DISPLAY_DELAY));
+    await gameLoop(geneticAlgorithm.model);
   });
 }
 

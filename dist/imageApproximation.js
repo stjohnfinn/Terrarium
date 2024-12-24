@@ -1,10 +1,20 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { GeneticAlgorithm } from "./terrarium.js";
 const MUTATION_CHANCE = 0.01;
 const POPULATION_SIZE = 10;
-const FRAME_DELAY = 0;
-const CANVAS_HEIGHT = 150;
-const CANVAS_WIDTH = 150;
-const GENOME_LENGTH = 500;
+const FRAME_DELAY = 40;
+const DISPLAY_DELAY = 500;
+const CANVAS_HEIGHT = 100;
+const CANVAS_WIDTH = 100;
+const GENOME_LENGTH = 300;
 const TARGET_CANVAS = document.createElement("canvas");
 TARGET_CANVAS.height = CANVAS_HEIGHT;
 TARGET_CANVAS.width = CANVAS_WIDTH;
@@ -22,6 +32,7 @@ const SANDBOX_CTX = SANDBOX_CANVAS.getContext("2d");
 clearCanvas(SANDBOX_CANVAS);
 const EMPTY_GENE_CHANCE = 0.2;
 const EMPTY_GENE_FITNESS_COEFF = 0.5;
+const COLOR_DIFF_LOSS_COEFF = 10;
 function clearCanvas(cv, color = "rgb(255, 255, 255)") {
     cv.getContext("2d").fillStyle = color;
     cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
@@ -51,7 +62,7 @@ function getRandomEllipse() {
     return new Ellipse({
         x: getRandomInt(0, CANVAS_WIDTH),
         y: getRandomInt(0, CANVAS_HEIGHT)
-    }, getRandomInt(1, 20), getRandomInt(1, 20), getRandomColor());
+    }, getRandomInt(1, CANVAS_WIDTH / 10), getRandomInt(1, CANVAS_HEIGHT / 10), getRandomColor());
 }
 class ImageApproxOrganism {
     constructor() {
@@ -98,10 +109,10 @@ function calculateFitness(organism) {
     // Compare pixel data directly from Uint8ClampedArrays
     for (let i = 0; i < targetImageData.length; i += 4) {
         // Each pixel has 4 values (R,G,B,A)
-        fitness -= Math.abs(targetImageData[i] - sandboxImageData[i]) / 255; // Red
-        fitness -= Math.abs(targetImageData[i + 1] - sandboxImageData[i + 1]) / 255; // Green
-        fitness -= Math.abs(targetImageData[i + 2] - sandboxImageData[i + 2]) / 255; // Blue
-        fitness -= Math.abs((targetImageData[i + 3] / 255) - (sandboxImageData[i + 3] / 255)); // Alpha
+        fitness -= Math.abs(targetImageData[i] - sandboxImageData[i]) / 255 * COLOR_DIFF_LOSS_COEFF; // Red
+        fitness -= Math.abs(targetImageData[i + 1] - sandboxImageData[i + 1]) / 255 * COLOR_DIFF_LOSS_COEFF; // Green
+        fitness -= Math.abs(targetImageData[i + 2] - sandboxImageData[i + 2]) / 255 * COLOR_DIFF_LOSS_COEFF; // Blue
+        fitness -= Math.abs((targetImageData[i + 3] / 255) - (sandboxImageData[i + 3] / 255)) * COLOR_DIFF_LOSS_COEFF; // Alpha
     }
     return Math.trunc(fitness);
 }
@@ -186,10 +197,6 @@ title.style.top = "0px";
 title.style.padding = "0.25rem";
 title.style.transform = "translateY(-100%)";
 title.style.fontSize = "0.75rem";
-let fitnessMetric = document.createElement("p");
-fitnessMetric.innerText = "Average highest fitness: 0";
-fitnessMetric.style.padding = "0.25rem";
-fitnessMetric.style.fontSize = "0.75rem";
 let canvasContainer = document.createElement("div");
 canvasContainer.style.display = "flex";
 canvasContainer.style.flexDirection = "row";
@@ -199,7 +206,6 @@ canvasContainer.style.gap = "1rem";
 canvasContainer.appendChild(DISPLAY_CANVAS);
 canvasContainer.appendChild(TARGET_CANVAS);
 // append the whole view
-view.appendChild(fitnessMetric);
 view.appendChild(canvasContainer);
 view.appendChild(title);
 view.appendChild(controls);
@@ -209,8 +215,6 @@ function display(canvas, model) {
     const mostFitOrganism = geneticAlgorithm.model.population.reduce((best, curr) => {
         return calculateFitness(curr) > calculateFitness(best) ? curr : best;
     });
-    const averageFitness = geneticAlgorithm.model.population.reduce((sum, current) => sum + calculateFitness(current), 0) / geneticAlgorithm.model.population.length;
-    fitnessMetric.innerText = `Average highest fitness: ${averageFitness}`;
     for (let i = 0; i < mostFitOrganism.genes.length; i++) {
         // skip null shapes
         if (mostFitOrganism.genes[i] == null) {
@@ -223,9 +227,12 @@ function display(canvas, model) {
     }
 }
 function gameLoop(model) {
-    display(DISPLAY_CANVAS, model);
-    requestAnimationFrame(() => {
-        gameLoop(geneticAlgorithm.model);
+    return __awaiter(this, void 0, void 0, function* () {
+        display(DISPLAY_CANVAS, model);
+        requestAnimationFrame(() => __awaiter(this, void 0, void 0, function* () {
+            yield new Promise(r => setTimeout(r, DISPLAY_DELAY));
+            yield gameLoop(geneticAlgorithm.model);
+        }));
     });
 }
 gameLoop(geneticAlgorithm.model);

@@ -83,19 +83,16 @@ environment.style.justifyItems = "center";
 environment.style.fontSize = "0.5rem";
 environment.style.width = "100%";
 let playButton = document.createElement("button");
-document.querySelector("body").appendChild(playButton);
 playButton.innerText = "▶ play ";
 playButton.addEventListener("click", () => {
     geneticAlgorithm.play();
 });
 let pauseButton = document.createElement("button");
-document.querySelector("body").appendChild(pauseButton);
 pauseButton.innerText = "⏸ pause";
 pauseButton.addEventListener("click", () => {
     geneticAlgorithm.pause();
 });
 let resetButton = document.createElement("button");
-document.querySelector("body").appendChild(resetButton);
 resetButton.innerText = "⟲ reset";
 resetButton.addEventListener("click", () => {
     geneticAlgorithm.reset();
