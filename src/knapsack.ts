@@ -15,7 +15,7 @@ canvas.width = CANVAS_WIDTH;
 // hyperparamters
 //##############################################################################
 
-const WEIGHT_CAPACITY: number = 1000;
+const WEIGHT_CAPACITY: number = 400;
 const MIN_WEIGHT: number = 50;
 const MAX_WEIGHT: number = 100;
 const MIN_VALUE: number = 10;
@@ -114,6 +114,8 @@ for (let i = 0; i < NUM_ITEMS; i++) {
   AVAILABLE_ITEMS.push(getRandomItem());
 }
 
+console.log(AVAILABLE_ITEMS);
+
 class KnapsackOrganism implements Organism {
   mutationChance: number;
   genes: Item[];
@@ -122,9 +124,12 @@ class KnapsackOrganism implements Organism {
     this.mutationChance = MUTATION_CHANCE;
     this.genes = [];
     
-    let available_items_copy: Item[] = structuredClone(AVAILABLE_ITEMS);
-    while (this.getWeight() < WEIGHT_CAPACITY) {
-      this.genes.push(available_items_copy.splice(getRandomInt(0, available_items_copy.length - 1), 1)[0]);
+    let available_items_copy: Item[] = AVAILABLE_ITEMS.map(item => Object.assign(Object.create(Object.getPrototypeOf(item)), item));
+
+    while (this.getWeight() < WEIGHT_CAPACITY || available_items_copy.length <= 0) {
+      const randomIndex = getRandomInt(0, available_items_copy.length - 1);
+      this.genes.push(available_items_copy[randomIndex]);
+      available_items_copy.splice(randomIndex, 1);
     }
 
     // remove the top item because it caused the overflow
@@ -326,14 +331,8 @@ for (let i = 0; i < geneticAlgorithm.model.population.length; i++) {
   ctx.fillText(`w: ${currentKnapsack.getWeight()}`, x, y - 16);
 
   for (let j = 0; j < geneticAlgorithm.model.population[i].genes.length; j++) {
-
+    geneticAlgorithm.model.population[i].genes[j].draw(canvas, getRandomInt(x + 5, p + KNAPSACK_WIDTH + (i * g) + (i * KNAPSACK_WIDTH) - 5), getRandomInt(y + 5, CANVAS_HEIGHT - 15));
   }
 }
-
-console.log(geneticAlgorithm.model.population[0].genes);
-
-// draw each knapsack's weight and total value
-
-// draw the available objects
 
 // draw a green square around the current best knapsack
