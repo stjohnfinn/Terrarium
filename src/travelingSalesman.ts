@@ -298,7 +298,6 @@ function drawRoute(route: Location[], ctx: CanvasRenderingContext2D, lineWidth: 
     ctx.lineTo(route[i].longitude, route[i].latitude);
   }
 
-  // ctx.closePath();
   ctx.stroke();
 }
 

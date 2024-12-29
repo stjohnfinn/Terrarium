@@ -45,6 +45,15 @@ function getRandomColor() {
         alpha: Math.random()
     };
 }
+function getRandomColorGray() {
+    const value = getRandomInt(0, 255);
+    return {
+        red: value,
+        green: value,
+        blue: value,
+        alpha: Math.random()
+    };
+}
 class Ellipse {
     constructor(position, radiusX, radiusY, color) {
         this.position = position;
@@ -62,7 +71,7 @@ function getRandomEllipse() {
     return new Ellipse({
         x: getRandomInt(0, CANVAS_WIDTH),
         y: getRandomInt(0, CANVAS_HEIGHT)
-    }, getRandomInt(1, CANVAS_WIDTH / 10), getRandomInt(1, CANVAS_HEIGHT / 10), getRandomColor());
+    }, getRandomInt(1, CANVAS_WIDTH / 10), getRandomInt(1, CANVAS_HEIGHT / 10), getRandomColorGray());
 }
 class ImageApproxOrganism {
     constructor() {

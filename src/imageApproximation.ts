@@ -61,6 +61,17 @@ function getRandomColor(): Color {
   };
 }
 
+function getRandomColorGray(): Color {
+  const value: number = getRandomInt(0, 255);
+
+  return {
+    red: value,
+    green: value,
+    blue: value,
+    alpha: Math.random()
+  };
+}
+
 class Ellipse {
   position: Position;
   radiusX: number;
@@ -90,7 +101,7 @@ function getRandomEllipse(): Ellipse{
     },
     getRandomInt(1, CANVAS_WIDTH / 10),
     getRandomInt(1, CANVAS_HEIGHT / 10),
-    getRandomColor()
+    getRandomColorGray()
   )
 }
 

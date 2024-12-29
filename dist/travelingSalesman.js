@@ -208,7 +208,6 @@ function drawRoute(route, ctx, lineWidth, strokeStyle, lineCap) {
     for (let i = 1; i < route.length; i++) {
         ctx.lineTo(route[i].longitude, route[i].latitude);
     }
-    // ctx.closePath();
     ctx.stroke();
 }
 function display(canvas, model) {
