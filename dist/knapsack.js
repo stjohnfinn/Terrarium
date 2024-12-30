@@ -206,39 +206,56 @@ document.querySelector("#view").appendChild(view);
 //##############################################################################
 // display
 //##############################################################################
-clearCanvas(canvas);
-canvas.getContext("2d").rect(10, 10, CANVAS_WIDTH - 20, 60);
-canvas.getContext("2d").stroke();
-for (const item of AVAILABLE_ITEMS) {
-    item.draw(canvas, getRandomInt(20, CANVAS_WIDTH - 20), getRandomInt(20, 50));
-}
-// draw each knapsack
 const DISPLAY_PADDING = 10;
+const KNAPSACK_PADDING = 5;
 const GAP = 10;
+const DEFAULT_KNAPSACK_HEIGHT = 40;
 const t = CANVAS_WIDTH;
 const g = GAP;
-const p = DISPLAY_PADDING;
+const p_o = DISPLAY_PADDING;
 const n = geneticAlgorithm.model.population.length;
-const KNAPSACK_WIDTH = ((2 * p) + (n - 1) * g - t) / -n;
-const KNAPSACK_PADDING = 5;
-const ctx = canvas.getContext("2d");
-for (let i = 0; i < geneticAlgorithm.model.population.length; i++) {
-    const currentKnapsack = geneticAlgorithm.model.population[i];
-    const x = p + i * g + i * KNAPSACK_WIDTH;
-    const y = 100;
-    ctx.beginPath();
-    ctx.rect(x, y, KNAPSACK_WIDTH, CANVAS_HEIGHT - y - 10);
+const p_i = KNAPSACK_PADDING;
+const d_iw = (p_i + p_i - t) / -n;
+const d_h = DEFAULT_KNAPSACK_HEIGHT;
+function display(canvas, model) {
+    clearCanvas(canvas);
+    const ctx = canvas.getContext("2d");
+    //#####################
+    // draw available items
+    //#####################
+    ctx.rect(p_o, p_o, CANVAS_WIDTH - (2 * p_o), DEFAULT_KNAPSACK_HEIGHT);
     ctx.stroke();
-    ctx.closePath();
-    ctx.fillStyle = "black";
-    ctx.font = "8px Sans";
-    ctx.textAlign = "left";
-    ctx.fillText(`$${currentKnapsack.getValue()}`, x, y - 6);
-    ctx.fillText(`w: ${currentKnapsack.getWeight()}`, x, y - 16);
-    for (let j = 0; j < geneticAlgorithm.model.population[i].genes.length; j++) {
-        geneticAlgorithm.model.population[i].genes[j].draw(canvas, getRandomInt(x + 5, p + KNAPSACK_WIDTH + (i * g) + (i * KNAPSACK_WIDTH) - 5), getRandomInt(y + 5, CANVAS_HEIGHT - 15));
+    for (let i = 0; i < AVAILABLE_ITEMS.length; i++) {
+        const item = AVAILABLE_ITEMS[i];
+        item.draw(canvas, i * d_iw, p_o + (d_h / 2));
+    }
+    //#####################
+    // draw each knapsack
+    //#####################
+    const KNAPSACK_WIDTH = ((2 * p_o) + (n - 1) * g - t) / -n;
+    for (let i = 0; i < geneticAlgorithm.model.population.length; i++) {
+        const currentKnapsack = geneticAlgorithm.model.population[i];
+        const x = p_o + i * g + i * KNAPSACK_WIDTH;
+        const y = 100;
+        ctx.beginPath();
+        ctx.rect(x, y, KNAPSACK_WIDTH, CANVAS_HEIGHT - y - 10);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fillStyle = "black";
+        ctx.font = "8px Sans";
+        ctx.textAlign = "left";
+        ctx.fillText(`$${currentKnapsack.getValue()}`, x, y - 6);
+        ctx.fillText(`w: ${currentKnapsack.getWeight()}`, x, y - 16);
+        for (let j = 0; j < geneticAlgorithm.model.population[i].genes.length; j++) {
+            geneticAlgorithm.model.population[i].genes[j].draw(canvas, x + KNAPSACK_PADDING + 15, y + (j * 10) + 20);
+        }
     }
 }
-// draw each knapsack's weight and total value
-// draw the available objects
+function gameLoop(model) {
+    display(canvas, model);
+    requestAnimationFrame(() => {
+        gameLoop(geneticAlgorithm.model);
+    });
+}
+gameLoop(geneticAlgorithm.model);
 // draw a green square around the current best knapsack
