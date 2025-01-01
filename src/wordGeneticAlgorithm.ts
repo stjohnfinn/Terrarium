@@ -2,7 +2,7 @@ import { Organism, GeneticAlgorithmModel, GeneticAlgorithm } from "./terrarium.j
 
 const Config = {
   CHARS: "abcdefghijklmnopqrstuvwxyz ",
-  TARGET_STRING: "rice and weird",
+  TARGET_STRING: "applesauce",
   MUTATION_CHANCE: 0.02,
   POPULATION_SIZE: 45,
 };
