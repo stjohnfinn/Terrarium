@@ -1,7 +1,7 @@
 import { GeneticAlgorithm } from "./terrarium.js";
 const MUTATION_CHANCE = 0.2;
-const POPULATION_SIZE = 7;
-const FRAME_DELAY = 40;
+const POPULATION_SIZE = 3;
+const FRAME_DELAY = 500;
 const CANVAS_HEIGHT = 250;
 const CANVAS_WIDTH = 250;
 const canvas = document.createElement("canvas");
@@ -85,7 +85,17 @@ let AVAILABLE_ITEMS = [];
 for (let i = 0; i < NUM_ITEMS; i++) {
     AVAILABLE_ITEMS.push(getRandomItem());
 }
-console.log(AVAILABLE_ITEMS);
+function remainingItems(items) {
+    let available_items_copy = AVAILABLE_ITEMS.map(item => Object.assign(Object.create(Object.getPrototypeOf(item)), item));
+    for (const j of items) {
+        for (const i of available_items_copy) {
+            if (i.weight == j.weight && i.value == j.value) {
+                available_items_copy.splice(available_items_copy.indexOf(i), 1);
+            }
+        }
+    }
+    return available_items_copy;
+}
 class KnapsackOrganism {
     constructor() {
         this.mutationChance = MUTATION_CHANCE;
@@ -93,8 +103,8 @@ class KnapsackOrganism {
         let available_items_copy = AVAILABLE_ITEMS.map(item => Object.assign(Object.create(Object.getPrototypeOf(item)), item));
         while (this.getWeight() < WEIGHT_CAPACITY || available_items_copy.length <= 0) {
             const randomIndex = getRandomInt(0, available_items_copy.length - 1);
-            this.genes.push(available_items_copy[randomIndex]);
-            available_items_copy.splice(randomIndex, 1);
+            const randomItem = available_items_copy.splice(randomIndex, 1)[0];
+            this.genes.push(randomItem);
         }
         // remove the top item because it caused the overflow
         this.genes.pop();
@@ -127,11 +137,34 @@ function createOrganism() {
 // trade objects but make sure it's still within the weight limit
 function crossover(parentA, parentB) {
     let organism = new KnapsackOrganism();
-    const items_count = parentA.genes.length > parentB.genes.length ? parentB.genes.length : parentA.genes.length;
     organism.genes = [];
-    for (let i = 0; i < items_count; i++) {
-        organism.genes.push(Math.random() > 0.5 ? parentA.genes[i] : parentB.genes[i]);
+    let possibleGenes = [...new Set([...parentA.genes, ...parentB.genes])];
+    // console.log("possible genes before", structuredClone(possibleGenes));
+    // const randomGeneIndex = getRandomInt(0, possibleGenes.length - 1);
+    // const randomGene = possibleGenes.splice(randomGeneIndex, 1)[0];
+    // while (organism.getWeight() < WEIGHT_CAPACITY) {  
+    //   organism.genes.push(possibleGenes[0]);
+    // }
+    // organism.getWeight();
+    // organism.genes.push(randomGene);
+    // console.log(organism.getWeight());
+    while (organism.getWeight() < WEIGHT_CAPACITY && possibleGenes.length > 0) {
+        const randomGeneIndex = getRandomInt(0, possibleGenes.length - 1);
+        const randomGene = possibleGenes.splice(randomGeneIndex, 1)[0];
+        if (organism.getWeight() + randomGene.weight <= WEIGHT_CAPACITY) {
+            organism.genes.push(randomGene);
+        }
     }
+    while (organism.getWeight() > WEIGHT_CAPACITY && organism.genes.length > 0) {
+        const randomIndex = getRandomInt(0, organism.genes.length - 1);
+        organism.genes.splice(randomIndex, 1);
+    }
+    return organism;
+    console.log("parentA", structuredClone(parentA));
+    console.log("parentB", structuredClone(parentB));
+    console.log("organism", structuredClone(organism));
+    console.log("possible genes after", structuredClone(possibleGenes));
+    console.log("available items", structuredClone(AVAILABLE_ITEMS));
     return organism;
 }
 //##############################################################################
@@ -142,28 +175,22 @@ function calculateFitness(organism) {
     if (organism.getWeight() > WEIGHT_CAPACITY) {
         return 0;
     }
-    return organism.getValue() - organism.getWeight();
+    return organism.getValue();
 }
 //##############################################################################
 // mutation
 //##############################################################################
 // trade random object out with other object
 function mutate(organism) {
-    let available_items_copy = AVAILABLE_ITEMS.map(item => Object.assign(Object.create(Object.getPrototypeOf(item)), item));
-    for (const item of organism.genes) {
-        available_items_copy = available_items_copy.filter(el => el != item);
-    }
+    let available_items_copy = remainingItems(organism.genes);
     for (let i = 0; i < organism.genes.length; i++) {
         const shouldMutate = Math.random() < organism.mutationChance;
         if (shouldMutate) {
-            console.log(`mutating at index ${i}`);
             organism.genes[i] = available_items_copy[getRandomInt(0, available_items_copy.length - 1)];
         }
     }
     while (organism.getWeight() > WEIGHT_CAPACITY) {
-        console.log("genes before");
-        console.log(organism.genes);
-        organism.genes.pop();
+        organism.genes.splice(getRandomInt(0, organism.genes.length - 1), 1);
     }
     return organism;
 }
@@ -184,6 +211,9 @@ function shouldProgressGeneration(model) {
 // shouldTerminate
 //##############################################################################
 function shouldTerminate(model) {
+    if (model.population.length == 0) {
+        return true;
+    }
     return false;
 }
 //##############################################################################
@@ -357,4 +387,3 @@ function gameLoop(model) {
     });
 }
 gameLoop(geneticAlgorithm.model);
-// draw a green square around the current best knapsack
