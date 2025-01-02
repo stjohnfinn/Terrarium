@@ -280,7 +280,7 @@ controls.style.justifyContent = "space-evenly";
 controls.style.width = "100%";
 
 let title: HTMLParagraphElement = document.createElement("p");
-title.innerText = "Image approximation";
+title.innerText = "Brightness approximation (refresh page for new image)";
 title.style.position = "absolute";
 title.style.left = "0px";
 title.style.top = "0px";

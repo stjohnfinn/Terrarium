@@ -139,15 +139,6 @@ function crossover(parentA, parentB) {
     let organism = new KnapsackOrganism();
     organism.genes = [];
     let possibleGenes = [...new Set([...parentA.genes, ...parentB.genes])];
-    // console.log("possible genes before", structuredClone(possibleGenes));
-    // const randomGeneIndex = getRandomInt(0, possibleGenes.length - 1);
-    // const randomGene = possibleGenes.splice(randomGeneIndex, 1)[0];
-    // while (organism.getWeight() < WEIGHT_CAPACITY) {  
-    //   organism.genes.push(possibleGenes[0]);
-    // }
-    // organism.getWeight();
-    // organism.genes.push(randomGene);
-    // console.log(organism.getWeight());
     while (organism.getWeight() < WEIGHT_CAPACITY && possibleGenes.length > 0) {
         const randomGeneIndex = getRandomInt(0, possibleGenes.length - 1);
         const randomGene = possibleGenes.splice(randomGeneIndex, 1)[0];
@@ -159,12 +150,6 @@ function crossover(parentA, parentB) {
         const randomIndex = getRandomInt(0, organism.genes.length - 1);
         organism.genes.splice(randomIndex, 1);
     }
-    return organism;
-    console.log("parentA", structuredClone(parentA));
-    console.log("parentB", structuredClone(parentB));
-    console.log("organism", structuredClone(organism));
-    console.log("possible genes after", structuredClone(possibleGenes));
-    console.log("available items", structuredClone(AVAILABLE_ITEMS));
     return organism;
 }
 //##############################################################################
