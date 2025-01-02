@@ -300,11 +300,6 @@ canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 canvas.style.border = "1px solid black";
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
-
 function display(canvas: HTMLCanvasElement, model: GeneticAlgorithmModel<ColorSchemeOrganism>) {
   const ctx: CanvasRenderingContext2D = canvas.getContext("2d");
 

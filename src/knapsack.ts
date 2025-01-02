@@ -109,11 +109,6 @@ function getRandomItem() {
   );
 }
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
-
 // create available items
 
 let AVAILABLE_ITEMS: Item[] = [];

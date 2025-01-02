@@ -31,11 +31,6 @@ const EMPTY_GENE_FITNESS_COEFF: number = 0.5;
 
 const COLOR_DIFF_LOSS_COEFF: number = 10;
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
-
 //##############################################################################
 // createOrganism
 //##############################################################################

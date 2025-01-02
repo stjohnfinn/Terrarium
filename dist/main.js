@@ -16,3 +16,7 @@ function getAverage(...numbers) {
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
+function clearCanvas(cv, color = "rgb(255, 255, 255)") {
+    cv.getContext("2d").fillStyle = color;
+    cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}

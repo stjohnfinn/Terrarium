@@ -146,10 +146,6 @@ let geneticAlgorithm = new GeneticAlgorithm(createOrganism, stepFunction, calcul
 //##############################################################################
 // display logic?
 //##############################################################################
-function clearCanvas(cv, color = "rgb(255, 255, 255)") {
-    cv.getContext("2d").fillStyle = color;
-    cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
 let displayDiv = document.createElement("div");
 displayDiv.style.display = "flex";
 displayDiv.style.alignItems = "center";

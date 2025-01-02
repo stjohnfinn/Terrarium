@@ -208,10 +208,6 @@ let canvas = document.createElement("canvas");
 canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 canvas.style.border = "1px solid black";
-function clearCanvas(cv, color = "rgb(255, 255, 255)") {
-    cv.getContext("2d").fillStyle = color;
-    cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
 function display(canvas, model) {
     const ctx = canvas.getContext("2d");
     clearCanvas(canvas);

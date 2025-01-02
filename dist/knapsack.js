@@ -76,10 +76,6 @@ function getRandomItem() {
         blue: getRandomInt(0, 255),
     });
 }
-function clearCanvas(cv, color = "rgb(255, 255, 255)") {
-    cv.getContext("2d").fillStyle = color;
-    cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
 // create available items
 let AVAILABLE_ITEMS = [];
 for (let i = 0; i < NUM_ITEMS; i++) {

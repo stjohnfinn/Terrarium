@@ -33,10 +33,6 @@ clearCanvas(SANDBOX_CANVAS);
 const EMPTY_GENE_CHANCE = 0.2;
 const EMPTY_GENE_FITNESS_COEFF = 0.5;
 const COLOR_DIFF_LOSS_COEFF = 10;
-function clearCanvas(cv, color = "rgb(255, 255, 255)") {
-    cv.getContext("2d").fillStyle = color;
-    cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
 function getRandomColor() {
     return {
         red: getRandomInt(0, 255),

@@ -223,11 +223,6 @@ let geneticAlgorithm = new GeneticAlgorithm(
 // display logic?
 //##############################################################################
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
-
 let displayDiv: HTMLDivElement = document.createElement("div");
 displayDiv.style.display = "flex";
 displayDiv.style.alignItems = "center";

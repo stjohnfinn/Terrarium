@@ -187,11 +187,6 @@ canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 canvas.style.border = "1px dashed lightblue";
 
-function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
-  cv.getContext("2d").fillStyle = color;
-  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
-}
-
 /**
  * REAL MEAT OF THIS ALL
  * 

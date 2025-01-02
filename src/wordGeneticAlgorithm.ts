@@ -110,7 +110,7 @@ let geneticAlgorithm: GeneticAlgorithm<WordOrganism> = new GeneticAlgorithm(
   crossover,
   mutate,
   shouldTerminate,
-  shouldProgressGeneration, 
+  shouldProgressGeneration,
   Config.POPULATION_SIZE
 );
 

@@ -21,3 +21,8 @@ function getAverage(...numbers: number[]): number {
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
+
+function clearCanvas(cv: HTMLCanvasElement, color: string = "rgb(255, 255, 255)") {
+  cv.getContext("2d").fillStyle = color;
+  cv.getContext("2d").fillRect(0, 0, cv.width, cv.height);
+}
