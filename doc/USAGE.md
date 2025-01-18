@@ -237,6 +237,9 @@ game loop again by calling `next()`. As I mentioned before, the constructor
 at some point to start running the genetic algorithm.
 * `pause()`: also exactly what it sounds like. This just sets `isRunning` to 
 `false`.
+* `getPopulation()`: very straightforward. returns `this.model.population`. 
+Often, it can get cumbersome typing `geneticAlgorithm.model.population`, so this
+shortcut was created.
 
 That's everything. You probably already noticed the framework is like 150 lines 
 of code. It's pretty simple. Honestly, you could probably just learn the 
