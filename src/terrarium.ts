@@ -309,6 +309,13 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
     }
   }
 
+  /**
+   * returns the model's population property
+   */
+  getPopulation(): TOrganism[] {
+    return this.model.population;
+  }
+
   private readonly prefabs = {
     produceNextGeneration: {
       /**
