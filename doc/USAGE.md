@@ -186,6 +186,18 @@ generation. If they don't use the default `produceNextGeneration` function and
 they change the number of organisms during a generation, then the 
 `populationSize` value may be completely meaningless.
 
+**UPDATE**: just kidding there's actually another parameter: 
+`reverseFitnessComparisons`. This one can be unintuitive, so let's take a step 
+back. In most cases, **higher fitness is better**. In some cases, though, it's 
+easier to write a fitness function (maybe more readable, maybe less complex
+math, whatever...) that returns lower values when the fitness is better. For 
+example, imagine you have a genetic algorithm where your organisms must reach 
+some destination. A good way to measure an organism's effectiveness would be to 
+calculate the distance from the objective. However, a smaller value would be 
+better. In cases like this, `reverseFitnessComparisons` can come in handy. You
+would set this to `true` in the example above. Most cases won't need to use this
+parameter. It's set to `false` by default.
+
 Now that we've covered every single parameter that the constructor gets, I'll
 discuss exactly what happens when the constructor runs. Obviously, this is all
 documented in code, but it's worth discussing in plain english as well in case 
