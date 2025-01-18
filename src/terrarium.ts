@@ -123,6 +123,12 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
   private frameDelayMilliseconds: number;
 
   /**
+   * reverseFitnessComparisons - false means "higher fitness is better", false
+   * by default.
+   */
+  private reverseFitnessComparisons: boolean;
+
+  /**
    * 
    * @param createOrganism user-defined function that will be used as the 
    * class's createOrganism function
@@ -142,6 +148,9 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
    * object's produceNextGeneration function
    * @param populationSize the number of organisms that the first generation
    * will start with
+   * @param reverseFitnessComparisons false by default. false means "higher 
+   * fitness is better". useful for cases where it's easier to implement a 
+   * fitness function where lower values are better (ex: distance from a target)
    */
   constructor(
     // class methods
@@ -157,7 +166,8 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
     frameDelayMilliseconds: number = 0,
     // this is super ugly, but I decided it was the best method for having a 
     // default value.
-    produceNextGeneration?: (model: GeneticAlgorithmModel<TOrganism>) => GeneticAlgorithmModel<TOrganism>) {
+    produceNextGeneration?: (model: GeneticAlgorithmModel<TOrganism>) => GeneticAlgorithmModel<TOrganism>,
+    reverseFitnessComparisons: boolean = false) {
 
     // initialize the model ****************************************************
     this.model = {
@@ -181,6 +191,7 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
     this.debug = debug;
     this.isRunning = false;
     this.frameDelayMilliseconds = frameDelayMilliseconds;
+    this.reverseFitnessComparisons = reverseFitnessComparisons;
     
     // generate new population *************************************************
     this.initializePopulation();
@@ -332,7 +343,17 @@ export class GeneticAlgorithm<TOrganism extends Organism> {
   
         // find two best parents
         const sortedPopulation: TOrganism[] = model.population.sort((a, b) => {
-          return this.calculateFitness(b) - this.calculateFitness(a);
+          const fitnessA = this.calculateFitness(a);
+          const fitnessB = this.calculateFitness(b);
+
+          // if the user has told us we should reverse the fitness comparisons
+          if (this.reverseFitnessComparisons) {
+            // sort asending (lower fitness first)
+            return fitnessA - fitnessB;
+          } else {
+            // otherwise, sort descending (higher fitness first)
+            return fitnessB - fitnessA
+          }
         });
   
         const parentA: TOrganism = sortedPopulation[0];

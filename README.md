@@ -71,7 +71,7 @@ model-view-controller design (MVC).
         }
 
     > **Note**: you have to write the code for `display()`. This function can be
-    thought of as the "view" in MVC.f
+    > thought of as the "view" in MVC.
 
 ## Other Documentation
 
